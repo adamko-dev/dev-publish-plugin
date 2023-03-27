@@ -1,3 +1,6 @@
+[![GitHub license](https://img.shields.io/github/license/adamko-dev/dev-publish-plugin?style=for-the-badge)](https://github.com/adamko-dev/dev-publish-plugin/blob/main/LICENSE)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.adamko.dev-publish-plugin?style=for-the-badge)](https://plugins.gradle.org/search?term=dev-publish)
+
 # Dev Publish Gradle Plugin
 
 Publish [Gradle](https://gradle.org/) projects to a project-local directory,
