@@ -1,0 +1,51 @@
+public final class dev/adamko/gradle/dev_publish/DevPublishPlugin : org/gradle/api/Plugin {
+	public static final field Companion Ldev/adamko/gradle/dev_publish/DevPublishPlugin$Companion;
+	public static final field DEV_PUB__EXTENSION_NAME Ljava/lang/String;
+	public static final field DEV_PUB__MAVEN_REPO_DIR Ljava/lang/String;
+	public static final field DEV_PUB__MAVEN_REPO_NAME Ljava/lang/String;
+	public static final field DEV_PUB__PUBLICATION_INCOMING_DEPENDENCIES Ljava/lang/String;
+	public static final field DEV_PUB__PUBLICATION_PROVIDED_DEPENDENCIES Ljava/lang/String;
+	public static final field DEV_PUB__TASK_GROUP Ljava/lang/String;
+	public static final field DEV_PUB__UPDATE_DEV_REPO_TASK_NAME Ljava/lang/String;
+	public fun <init> (Lorg/gradle/api/provider/ProviderFactory;Lorg/gradle/api/file/ProjectLayout;Lorg/gradle/api/file/FileSystemOperations;Lorg/gradle/api/model/ObjectFactory;)V
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public fun apply (Lorg/gradle/api/Project;)V
+}
+
+public final class dev/adamko/gradle/dev_publish/DevPublishPlugin$Companion {
+}
+
+public final class dev/adamko/gradle/dev_publish/DevPublishPlugin$configureMavenPublishingPlugin$1$inlined$sam$i$org_gradle_api_Action$0 : org/gradle/api/Action {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public final synthetic fun execute (Ljava/lang/Object;)V
+}
+
+public final class dev/adamko/gradle/dev_publish/DevPublishPlugin$inlined$sam$i$org_gradle_api_Action$0 : org/gradle/api/Action {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public final synthetic fun execute (Ljava/lang/Object;)V
+}
+
+public abstract class dev/adamko/gradle/dev_publish/DevPublishPluginExtension {
+	public fun <init> ()V
+	public abstract fun getChecksumsStore ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getDevMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getStagingTestMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
+}
+
+public abstract class dev/adamko/gradle/dev_publish/data/PublicationData : org/gradle/api/Named {
+	public fun <init> (Ljava/lang/String;)V
+	public abstract fun getArtifacts ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getIdentifier ()Lorg/gradle/api/provider/Property;
+	public fun getName ()Ljava/lang/String;
+}
+
+public abstract interface annotation class dev/adamko/gradle/dev_publish/internal/DevPublishInternalApi : java/lang/annotation/Annotation {
+}
+
+public abstract class dev/adamko/gradle/dev_publish/tasks/GeneratePublicationHashTask : org/gradle/api/DefaultTask {
+	public fun <init> (Lorg/gradle/api/file/FileSystemOperations;)V
+	public final fun generate ()V
+	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getPublicationData ()Lorg/gradle/api/NamedDomainObjectContainer;
+}
+
