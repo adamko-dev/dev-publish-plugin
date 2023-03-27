@@ -7,6 +7,9 @@ plugins {
   idea
 }
 
+project.version = "0.0.1"
+project.group = "dev.adamko.gradle"
+
 gradlePlugin {
   plugins.create("GradlePublishingTest") {
     id = "dev.adamko.dev-publish"
