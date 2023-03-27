@@ -10,12 +10,28 @@ plugins {
 project.version = "0.0.1"
 project.group = "dev.adamko.gradle"
 
+@Suppress("UnstableApiUsage")
 gradlePlugin {
-  plugins.create("GradlePublishingTest") {
+  isAutomatedPublishing = true
+  website.set("https://github.com/adamko-dev/dev-publish-plugin")
+  vcsUrl.set("https://github.com/adamko-dev/dev-publish-plugin.git")
+
+  plugins.register("DevPublish") {
     id = "dev.adamko.dev-publish"
+    displayName = "DevPublish"
+    description = "Publish Gradle Projects to a project-local repository, for functional testing"
     implementationClass = "dev.adamko.gradle.dev_publish.DevPublishPlugin"
+    tags.addAll(
+      "maven",
+      "publishing",
+      "maven-publish",
+      "test",
+      "publication",
+      "verify",
+    )
   }
 }
+
 
 binaryCompatibilityValidator {
   ignoredMarkers.addAll(
