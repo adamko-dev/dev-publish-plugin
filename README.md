@@ -3,8 +3,8 @@
 
 # Dev Publish Gradle Plugin
 
-Publish [Gradle](https://gradle.org/) projects to a project-local directory,
-ready for functional testing.
+[Dev Publish](https://github.com/adamko-dev/dev-publish-plugin) is a [Gradle](https://gradle.org/) plugin
+that publishes subprojects to a project-local directory, ready for functional testing.
 
 ### Why Dev Publish?
 
@@ -14,6 +14,7 @@ ready for functional testing.
   repository"*](https://docs.gradle.org/current/userguide/declaring_repositories.html#sec:case-for-maven-local))
 * Perfect for testing Gradle plugins and
   [Gradle Plugin Marker Artifacts](https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers)
+  (instead of using [TestKit + `withRuntimeClasspath()`](https://docs.gradle.org/8.0/userguide/test_kit.html#sub:test-kit-automatic-classpath-injection))
 * Avoids unnecessary re-publishing (even if using SNAPSHOT versions)
 * Compatible with Gradle Build and Configuration cache
 
