@@ -1,5 +1,5 @@
 [![GitHub license](https://img.shields.io/github/license/adamko-dev/dev-publish-plugin?style=for-the-badge)](https://github.com/adamko-dev/dev-publish-plugin/blob/main/LICENSE)
-[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.adamko.dev-publish-plugin?style=for-the-badge)](https://plugins.gradle.org/search?term=dev-publish)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.adamko.dev-publish?logo=gradle&style=for-the-badge)](https://plugins.gradle.org/plugin/dev.adamko.dev-publish)
 
 # Dev Publish Gradle Plugin
 
@@ -19,7 +19,8 @@ ready for functional testing.
 
 ### Quick Start
 
-If a subproject already publishes Maven artifacts, then apply `dev.adamko.dev-publish`
+If a subproject already publishes Maven artifacts, then apply DevPublish using the plugin ID `dev.adamko.dev-publish`
+and [the latest version](https://plugins.gradle.org/plugin/dev.adamko.dev-publish).
 
 ```kotlin
 // build.gradle.kts
