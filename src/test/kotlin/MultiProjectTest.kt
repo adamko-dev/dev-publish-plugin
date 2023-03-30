@@ -17,6 +17,7 @@ class MultiProjectTest : FunSpec({
 
     project.runner.withArguments(
       ":project-gamma:updateDevRepo",
+      "--stacktrace",
       "--configuration-cache",
       "--build-cache",
     ).build {

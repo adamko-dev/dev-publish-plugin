@@ -20,6 +20,9 @@ abstract class DevPublishPluginExtension {
    *
    * This value should not typically be configured or used.
    */
+  abstract val stagingDevMavenRepo: DirectoryProperty
+
+  @Deprecated("renamed to tempStagingMavenRepo", ReplaceWith("stagingDevMavenRepo"))
   abstract val stagingTestMavenRepo: DirectoryProperty
 
   /**

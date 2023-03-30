@@ -13,7 +13,7 @@ import java.security.MessageDigest
 //import java.util.*
 
 
-internal fun File.md5(): String = inputStream().md5()
+internal fun File.md5(): String = if (exists()) inputStream().md5() else "missing"
 //internal fun ByteArray.md5(): String = inputStream().md5()
 //internal fun Iterable<File>.md5(): String =
 //  SequenceInputStream(toEnumeration { it.inputStream() }).md5()

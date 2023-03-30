@@ -20,6 +20,7 @@ abstract class PublicationData @Inject constructor(
 
   /**
    * The artifacts inside a [MavenPublication]
+   *
    * @see MavenPublication.getArtifacts
    */
   @get:InputFiles
@@ -51,9 +52,9 @@ abstract class PublicationData @Inject constructor(
     val identifier = identifier.get()
 
     return /* language=TEXT */ """
-            |$identifier
-            |---
-            |$md5
-        """.trimMargin()
+      |$identifier
+      |---
+      |$md5
+    """.trimMargin()
   }
 }

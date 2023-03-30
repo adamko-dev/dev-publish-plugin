@@ -4,6 +4,7 @@ import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishConfigurationAttributes
 import dev.adamko.gradle.dev_publish.internal.DevPublishConfigurationAttributes.Companion.DEV_PUB_USAGE
 import dev.adamko.gradle.dev_publish.tasks.GeneratePublicationHashTask
+import dev.adamko.gradle.dev_publish.tasks.UpdateDevRepoTask
 import dev.adamko.gradle.dev_publish.utils.asConsumer
 import dev.adamko.gradle.dev_publish.utils.asProvider
 import org.gradle.api.Plugin
@@ -18,7 +19,6 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
@@ -100,38 +100,34 @@ class DevPublishPlugin @Inject constructor(
       generatePublicationHashTask,
     )
 
-    val prepChecksumStoreTask = project.tasks.register("prepareDevPubChecksumStore") {
-      // hacky workaround to make sure that the checksumsStore directory exists before
-      // PublishToMavenRepository tasks are configured
-      outputs.dir(devPubExtension.checksumsStore)
-        .withPropertyName("checksumStore")
-    }
-
     project.tasks.withType<PublishToMavenRepository>().configureEach {
 
       // need to determine the repo lazily because the repo isn't set immediately
       val repoIsDevPub = providers.provider { repository?.name == DEV_PUB__MAVEN_REPO_NAME }.orElse(false)
       inputs.property("repoIsDevPub", repoIsDevPub)
 
+
       inputs
-        .files(prepChecksumStoreTask.map { it.outputs.files })
-        .withPropertyName("devPubChecksumsStore")
+        // must convert to FileTree, because the directory might not exist, and
+        // Gradle won't accept directories that don't exist as inputs.
+        .files(devPubExtension.checksumsStore.asFileTree)
+        .withPropertyName("devPubChecksumsStoreFiles")
 
       val publicationData = providers.provider {
         createPublicationData(publication)
       }
-      val currentChecksum: Provider<String> = publicationData.flatMap { data ->
-        providers.provider {
-          data.createChecksumContent()
-        }
+      val currentChecksum: Provider<String> = publicationData.map { data ->
+        data.createChecksumContent()
       }
-      val storedChecksum: Provider<String> = publicationData.flatMap { data ->
-        providers.provider {
-          devPubExtension.checksumsStore.asFile.get()
-            .resolve(data.checksumFilename)
-            .takeIf(File::exists)
-            ?.readText()
-        }
+
+      val storedChecksum: Provider<String> = providers.zip(
+        publicationData,
+        devPubExtension.checksumsStore,
+      ) { data, checksumStore ->
+        checksumStore.asFile
+          .resolve(data?.checksumFilename ?: "unknown")
+          .takeIf(File::exists)
+          ?.readText()
       }
 
       onlyIf("current checksums don't match stored checksum") {
@@ -142,22 +138,13 @@ class DevPublishPlugin @Inject constructor(
 
         currentChecksum.orNull != storedChecksum.orNull
       }
-
-      // clean up dir before publishing to prevent SNAPSHOT spam
-      doFirst {
-        if (repoIsDevPub.get()) {
-          files.delete {
-            delete(devPubExtension.stagingTestMavenRepo)
-          }
-        }
-      }
     }
   }
 
   private fun createExtension(project: Project): DevPublishPluginExtension {
     return project.extensions.create<DevPublishPluginExtension>(DEV_PUB__EXTENSION_NAME).apply {
       devMavenRepo.convention(layout.buildDirectory.dir(DEV_PUB__MAVEN_REPO_DIR))
-      stagingTestMavenRepo.convention(layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/staging"))
+      stagingDevMavenRepo.convention(layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/staging"))
       checksumsStore.convention(layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/checksum-store"))
     }
   }
@@ -170,7 +157,7 @@ class DevPublishPlugin @Inject constructor(
       group = DEV_PUB__TASK_GROUP
       description = "Publishes all Maven publications to the dev Maven repository"
 
-      outputs.dir(devPubExtension.stagingTestMavenRepo)
+      outputs.dir(devPubExtension.stagingDevMavenRepo)
 
       dependsOn(
         // I would like to check using repository.name == DEV_PUB__MAVEN_REPO_NAME, but the task's
@@ -192,11 +179,11 @@ class DevPublishPlugin @Inject constructor(
   private fun createUpdateDevRepoTask(
     project: Project,
     devPubExtension: DevPublishPluginExtension,
-  ): TaskProvider<Sync> =
-    project.tasks.register<Sync>(DEV_PUB__UPDATE_DEV_REPO_TASK_NAME) {
+  ): TaskProvider<UpdateDevRepoTask> =
+    project.tasks.register<UpdateDevRepoTask>(DEV_PUB__UPDATE_DEV_REPO_TASK_NAME) {
       group = DEV_PUB__TASK_GROUP
-      from(devPubExtension.stagingTestMavenRepo)
-      into(devPubExtension.devMavenRepo)
+      stagingRepo.set(devPubExtension.stagingDevMavenRepo)
+      devRepo.set(devPubExtension.devMavenRepo)
     }
 
   private fun configureMavenPublishingPlugin(
@@ -206,7 +193,7 @@ class DevPublishPlugin @Inject constructor(
   ) {
     project.plugins.withType<MavenPublishPlugin>().configureEach {
       project.extensions.configure<PublishingExtension> {
-        repositories.maven(devPubExtension.stagingTestMavenRepo) {
+        repositories.maven(devPubExtension.stagingDevMavenRepo) {
           name = DEV_PUB__MAVEN_REPO_NAME
         }
 
