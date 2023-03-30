@@ -22,9 +22,6 @@ abstract class DevPublishPluginExtension {
    */
   abstract val stagingDevMavenRepo: DirectoryProperty
 
-  @Deprecated("renamed to tempStagingMavenRepo", ReplaceWith("stagingDevMavenRepo"))
-  abstract val stagingTestMavenRepo: DirectoryProperty
-
   /**
    * Location of stored
    * [dev.adamko.gradle.dev_publish.data.PublicationData]

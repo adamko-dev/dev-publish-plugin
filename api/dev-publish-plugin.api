@@ -30,7 +30,6 @@ public abstract class dev/adamko/gradle/dev_publish/DevPublishPluginExtension {
 	public abstract fun getChecksumsStore ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getDevMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getStagingDevMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
-	public abstract fun getStagingTestMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
 }
 
 public abstract class dev/adamko/gradle/dev_publish/data/PublicationData : org/gradle/api/Named {
