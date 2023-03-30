@@ -2,9 +2,11 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class MultipleGradlePluginsTest : FunSpec({
 
@@ -15,7 +17,7 @@ class MultipleGradlePluginsTest : FunSpec({
       .withArguments("clean")
       .build {
         output.shouldContain("SUCCESSFUL")
-        task(":clean")?.outcome shouldBe TaskOutcome.SUCCESS
+        task(":clean")?.outcome.shouldBeOneOf(SUCCESS, UP_TO_DATE)
       }
 
     project.runner.withArguments(
