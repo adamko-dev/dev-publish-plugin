@@ -72,11 +72,7 @@ private fun File.listDirectoryEntries(
 private fun File.isEmptyDir(
   matchers: PathGlobMatchers
 ): Boolean =
-  if (isFile) {
-    true
-  } else {
-    walk().filter { matchers.matches(it) }.none { it.isFile }
-  }
+  isFile || walk().filter { matchers.matches(it) }.none { it.isFile }
 
 
 private fun File.countDirectoryEntries(
