@@ -7,75 +7,221 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import org.intellij.lang.annotations.Subst
+import java.nio.file.Path
 
 class MultipleGradlePluginsTest : FunSpec({
 
-  test("test multiple Gradle plugins") {
+  context("test multiple Gradle plugins") {
     val project = project()
 
-    project.runner
-      .withArguments("clean")
-      .build {
-        output.shouldContain("SUCCESSFUL")
-        task(":clean")?.outcome.shouldBeOneOf(SUCCESS, UP_TO_DATE)
+    test("clean should succeed") {
+      project.runner
+        .withArguments("clean")
+        .build {
+          output.shouldContain("SUCCESSFUL")
+          task(":clean")?.outcome.shouldBeOneOf(SUCCESS, UP_TO_DATE)
+        }
+    }
+
+    test("first publish should succeed") {
+      project.runner
+        .withArguments(
+          "updateDevRepo",
+          "--stacktrace",
+          "--configuration-cache",
+          "--build-cache",
+        )
+        .forwardOutput()
+        .build {
+          output.shouldContain("SUCCESSFUL")
+
+          val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+
+          mavenDevDir.shouldBeMavenDevRepoWithPlugins(
+            version = "1.2.3"
+          )
+        }
+    }
+
+    test("second publish should be skip tasks") {
+      project.runner
+        .withArguments(
+          "updateDevRepo",
+          "--stacktrace",
+          "--configuration-cache",
+          "--build-cache",
+        )
+        .forwardOutput()
+        .build {
+          output.shouldContain("SUCCESSFUL")
+
+          val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+
+          mavenDevDir.shouldBeMavenDevRepoWithPlugins(
+            version = "1.2.3"
+          )
+        }
+    }
+
+    context("when version changes") {
+      project.updateVersion("4.5.6")
+
+      test("expect old version files deleted, new version files are retained") {
+        project.runner
+          .withArguments(
+            "updateDevRepo",
+            "--stacktrace",
+            "--configuration-cache",
+            "--build-cache",
+          )
+          .forwardOutput()
+          .build {
+            output.shouldContain("SUCCESSFUL")
+
+            val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+
+            mavenDevDir.shouldBeMavenDevRepoWithPlugins(
+              version = "4.5.6"
+            )
+          }
       }
+    }
 
-    project.runner.withArguments(
-      ":updateDevRepo",
-      "--stacktrace",
-      "--configuration-cache",
-      "--build-cache",
-    ).build {
-      output.shouldContain("SUCCESSFUL")
+    context("when version is SNAPSHOT") {
+      project.updateVersion("8.9.0-SNAPSHOT")
 
-      val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+      context("when one plugin changes") {
+        project.dir("src/main/kotlin") {
+          createKotlinFile(
+            "PluginAlpha.kt", """
+            import org.gradle.api.*   
+            
+            class PluginAlpha : Plugin<Project> {
+              override fun apply(project: Project) {
+                println("plugin-alpha UPDATED to trigger recompile")
+              }
+            }
+          """.trimIndent()
+          )
+        }
 
-      mavenDevDir.toTreeString { include("**/*.jar") } /*language=TEXT*/ shouldBe """
+        test("expect old version files deleted, new version files are retained") {
+          project.runner
+            .withArguments(
+              "updateDevRepo",
+              "--stacktrace",
+              "--configuration-cache",
+              "--build-cache",
+            )
+            .forwardOutput()
+            .build {
+              output.shouldContain("SUCCESSFUL")
+
+              val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+
+              val snapshotVersion = mavenDevDir.toFile().walk()
+                .filter { it.isFile }
+                .firstNotNullOf { file ->
+                  file.name
+                    .substringAfter("multiple-gradle-plugins-8.9.0-", "")
+                    .substringBefore(".jar", "")
+                    .takeIf(String::isNotBlank)
+                }
+
+              mavenDevDir.shouldBeMavenDevRepoWithPlugins(
+                version = "8.9.0-$snapshotVersion",
+                directoryVersion = "8.9.0-SNAPSHOT",
+              )
+            }
+        }
+      }
+    }
+  }
+})
+
+private fun Path.shouldBeMavenDevRepoWithPlugins(
+  @Subst("1.2.3")
+  version: String,
+  @Subst("1.2.3")
+  directoryVersion: String = version,
+  expectSnapshotMavenMetadata: Boolean = directoryVersion.endsWith("-SNAPSHOT")
+) {
+
+  toTreeString { include("**/*.jar") } shouldBe /*language=TEXT*/ """
         |maven-dev/
         |└── dev/
         |    └── publish/
         |        └── plugin/
         |            └── test/
         |                └── multiple-gradle-plugins/
-        |                    └── 1.2.4/
-        |                        └── multiple-gradle-plugins-1.2.4.jar
+        |                    └── $directoryVersion/
+        |                        └── multiple-gradle-plugins-$version.jar
       """.trimMargin()
 
-      mavenDevDir.toTreeString { include("**/*.module") } /*language=TEXT*/ shouldBe """
+  toTreeString { include("**/*.module") } shouldBe /*language=TEXT*/ """
         |maven-dev/
         |└── dev/
         |    └── publish/
         |        └── plugin/
         |            └── test/
         |                └── multiple-gradle-plugins/
-        |                    └── 1.2.4/
-        |                        └── multiple-gradle-plugins-1.2.4.module
+        |                    └── $directoryVersion/
+        |                        └── multiple-gradle-plugins-$version.module
       """.trimMargin()
 
-      mavenDevDir.toTreeString { include("**/*.pom") } /*language=TEXT*/ shouldBe """
+  toTreeString { include("**/*.pom") } shouldBe /*language=TEXT*/ """
         |maven-dev/
         |├── dev/
         |│   └── publish/
         |│       └── plugin/
         |│           └── test/
         |│               └── multiple-gradle-plugins/
-        |│                   └── 1.2.4/
-        |│                       └── multiple-gradle-plugins-1.2.4.pom
+        |│                   └── $directoryVersion/
+        |│                       └── multiple-gradle-plugins-$version.pom
         |├── plugin-alpha/
         |│   └── plugin-alpha.gradle.plugin/
-        |│       └── 1.2.4/
-        |│           └── plugin-alpha.gradle.plugin-1.2.4.pom
+        |│       └── $directoryVersion/
+        |│           └── plugin-alpha.gradle.plugin-$version.pom
         |├── plugin-beta/
         |│   └── plugin-beta.gradle.plugin/
-        |│       └── 1.2.4/
-        |│           └── plugin-beta.gradle.plugin-1.2.4.pom
+        |│       └── $directoryVersion/
+        |│           └── plugin-beta.gradle.plugin-$version.pom
         |└── plugin-gamma/
         |    └── plugin-gamma.gradle.plugin/
-        |        └── 1.2.4/
-        |            └── plugin-gamma.gradle.plugin-1.2.4.pom
+        |        └── $directoryVersion/
+        |            └── plugin-gamma.gradle.plugin-$version.pom
       """.trimMargin()
 
-      mavenDevDir.toTreeString { include("**/maven-metadata.xml") } /*language=TEXT*/ shouldBe """
+  if (expectSnapshotMavenMetadata) {
+    toTreeString { include("**/maven-metadata.xml") } shouldBe /*language=TEXT*/ """
+        |maven-dev/
+        |├── dev/
+        |│   └── publish/
+        |│       └── plugin/
+        |│           └── test/
+        |│               └── multiple-gradle-plugins/
+        |│                   ├── $directoryVersion/
+        |│                   │   └── maven-metadata.xml
+        |│                   └── maven-metadata.xml
+        |├── plugin-alpha/
+        |│   └── plugin-alpha.gradle.plugin/
+        |│       ├── $directoryVersion/
+        |│       │   └── maven-metadata.xml
+        |│       └── maven-metadata.xml
+        |├── plugin-beta/
+        |│   └── plugin-beta.gradle.plugin/
+        |│       ├── $directoryVersion/
+        |│       │   └── maven-metadata.xml
+        |│       └── maven-metadata.xml
+        |└── plugin-gamma/
+        |    └── plugin-gamma.gradle.plugin/
+        |        ├── $directoryVersion/
+        |        │   └── maven-metadata.xml
+        |        └── maven-metadata.xml
+      """.trimMargin()
+  } else {
+    toTreeString { include("**/maven-metadata.xml") } shouldBe /*language=TEXT*/ """
         |maven-dev/
         |├── dev/
         |│   └── publish/
@@ -93,11 +239,10 @@ class MultipleGradlePluginsTest : FunSpec({
         |    └── plugin-gamma.gradle.plugin/
         |        └── maven-metadata.xml
       """.trimMargin()
-    }
   }
-})
+}
 
-private fun project() = gradleKtsProjectTest("multiple-gradle-plugins") {
+private fun project(): GradleProjectTest = gradleKtsProjectTest("multiple-gradle-plugins") {
 
   buildGradleKts = """
     plugins {
@@ -108,7 +253,7 @@ private fun project() = gradleKtsProjectTest("multiple-gradle-plugins") {
     }
     
     group = "dev.publish.plugin.test"
-    version = "1.2.4"
+    version = "1.2.3"
     
     gradlePlugin {
       isAutomatedPublishing = true
@@ -166,4 +311,17 @@ private fun project() = gradleKtsProjectTest("multiple-gradle-plugins") {
       """.trimIndent()
     )
   }
+}
+
+
+private fun GradleProjectTest.updateVersion(version: String) {
+  buildGradleKts = buildGradleKts
+    .lines()
+    .joinToString("\n") { line ->
+      if (line.startsWith("""version = """)) {
+        """version = "$version""""
+      } else {
+        line
+      }
+    }
 }

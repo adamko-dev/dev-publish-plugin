@@ -1,6 +1,7 @@
 package dev.adamko.gradle.dev_publish.utils
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.RelativePath
 
 
 /**
@@ -35,3 +36,13 @@ internal fun Configuration.asConsumer(
   isCanBeConsumed = false
   isVisible = visible
 }
+
+
+/** Drop the first [count] directories from the [RelativePath] */
+internal fun RelativePath.dropDirectories(count: Int): RelativePath =
+  RelativePath(true, *segments.drop(count).toTypedArray())
+
+
+/** Drop the first directory from the [RelativePath] */
+internal fun RelativePath.dropDirectory(): RelativePath =
+  dropDirectories(1)

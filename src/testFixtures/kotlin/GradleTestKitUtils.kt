@@ -67,19 +67,22 @@ fun gradleKtsProjectTest(
     settingsGradleKts = """
       |rootProject.name = "$projectName"
       |
-      |@Suppress("UnstableApiUsage")
-      |dependencyResolutionManagement {
+      |pluginManagement {
       |  repositories {
+      |    maven(file("$testMavenRepoPathString")) {
+      |      mavenContent {
+      |        includeGroup("dev.adamko.dev-publish")
+      |        includeGroup("dev.adamko.gradle")
+      |      }
+      |    }
       |    mavenCentral()
-      |    maven(file("$testMavenRepoPathString"))
+      |    gradlePluginPortal()
       |  }
       |}
       |
-      |pluginManagement {
+      |dependencyResolutionManagement {
       |  repositories {
-      |    gradlePluginPortal()
       |    mavenCentral()
-      |    maven(file("$testMavenRepoPathString"))
       |  }
       |}
       |

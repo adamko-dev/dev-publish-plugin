@@ -2,20 +2,23 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
-import org.gradle.api.DefaultTask
+import dev.adamko.gradle.dev_publish.services.DevPublishService
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
-@CacheableTask
-abstract class GeneratePublicationHashTask
+@DisableCachingByDefault
+abstract class GeneratePublicationDataChecksumTask
 @Inject
 constructor(
   private val files: FileSystemOperations,
-) : DefaultTask() {
+) : BaseDevPublishTask() {
 
   /** Pertinent data for all present Maven publications. */
   @get:Nested
@@ -36,19 +39,24 @@ constructor(
   fun generate() {
     files.delete { delete(tempDir) }
 
-    publicationData.forEach { data ->
+    val publicationsHash = publicationData.joinToString("\n") { data ->
       logger.info("Creating publication data checksum for ${data.name} ${data.artifacts.asPath}")
-
-      val file = tempDir.file(data.checksumFilename).get().asFile.apply {
-        if (!exists()) {
-          parentFile.mkdirs()
-          createNewFile()
-        }
-        writeText(data.createChecksumContent())
-      }
-
-      logger.info("created checksum ${file.relativeTo(rootDir)}: ${file.readText().lines().joinToString(" // ")}")
+      data.createChecksumContent()
     }
+
+    val file = tempDir.file("publication-data-checksum.txt").get().asFile.apply {
+      if (!exists()) {
+        parentFile.mkdirs()
+        createNewFile()
+      }
+      writeText(publicationsHash)
+    }
+
+    logger.debug(
+      "created publication data checksum {}: {}",
+      file.relativeTo(rootDir),
+      file.readText().lines().joinToString(" // ")
+    )
 
     files.sync {
       from(tempDir)
