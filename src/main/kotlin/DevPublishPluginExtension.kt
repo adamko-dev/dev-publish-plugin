@@ -7,10 +7,11 @@ import org.gradle.api.file.DirectoryProperty
  * Settings for controlling the behaviour of [DevPublishPlugin] and tasks.
  */
 abstract class DevPublishPluginExtension {
+
   /**
    * Location of the file-based test Maven repository.
    *
-   * The repository is specific per subproject and should not be shared.
+   * The repository is specific per subproject and should not be shared between subprojects.
    *
    * This property should be passed into tests and provided as a Maven repository.
    */
@@ -25,6 +26,8 @@ abstract class DevPublishPluginExtension {
   abstract val stagingDevMavenRepo: DirectoryProperty
 
   /**
+   * Temporary storage of individual publications.
+   *
    * This value should not typically be configured or used.
    */
   @DevPublishInternalApi
