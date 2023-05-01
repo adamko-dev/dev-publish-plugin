@@ -4,7 +4,6 @@ import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer.Companio
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
-import dev.adamko.gradle.dev_publish.tasks.GeneratePublicationDataChecksumTask
 import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -46,11 +45,6 @@ class DevPublishPlugin @Inject constructor(
 
     val devPubService = project.gradle.sharedServices.registerDevPubService()
 
-    project.tasks.withType<GeneratePublicationDataChecksumTask>().configureEach {
-      usesService(devPubService)
-      devPublishServiceProperty.set(devPubService)
-    }
-
     val devPubTasks: DevPublishTasksContainer = objects.newInstance(
       project.tasks,
       devPubExtension,
@@ -81,6 +75,7 @@ class DevPublishPlugin @Inject constructor(
       project = project,
       devPubExtension = devPubExtension,
       devPubTasks = devPubTasks,
+      devPublishService = devPubService,
     )
 
     configureBasePlugin(
@@ -119,6 +114,7 @@ class DevPublishPlugin @Inject constructor(
     project: Project,
     devPubExtension: DevPublishPluginExtension,
     devPubTasks: DevPublishTasksContainer,
+    devPublishService: Provider<DevPublishService>,
   ) {
     project.plugins.withType<MavenPublishPlugin>().configureEach {
       project.extensions.configure<PublishingExtension> {
@@ -141,6 +137,7 @@ class DevPublishPlugin @Inject constructor(
     devPubExtension: DevPublishPluginExtension,
     devPubService: Provider<DevPublishService>,
   ) {
+    // register the service to ensure multiple PublishToMavenRepository tasks don't run in parallel
     usesService(devPubService)
 
     val stagingDevMavenRepo = devPubExtension.stagingDevMavenRepo
