@@ -1,5 +1,6 @@
 package dev.adamko.gradle.dev_publish
 
+import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import org.gradle.api.file.DirectoryProperty
 
 /**
@@ -20,7 +21,14 @@ abstract class DevPublishPluginExtension {
    *
    * This value should not typically be configured or used.
    */
+  @DevPublishInternalApi
   abstract val stagingDevMavenRepo: DirectoryProperty
+
+  /**
+   * This value should not typically be configured or used.
+   */
+  @DevPublishInternalApi
+  abstract val publicationsStore: DirectoryProperty
 
   /**
    * Location of stored
@@ -29,5 +37,6 @@ abstract class DevPublishPluginExtension {
    *
    * This value should not typically be configured or used.
    */
+  @DevPublishInternalApi
   abstract val checksumsStore: DirectoryProperty
 }
