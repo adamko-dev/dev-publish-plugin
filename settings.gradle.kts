@@ -2,8 +2,8 @@ rootProject.name = "dev-publish-plugin"
 
 pluginManagement {
   repositories {
-    gradlePluginPortal()
     mavenCentral()
+    gradlePluginPortal()
   }
 }
 
@@ -13,16 +13,6 @@ dependencyResolutionManagement {
 
   repositories {
     mavenCentral()
-    gradlePluginPortal()
-
-    ivy("https://services.gradle.org/") {
-      name = "Gradle Services"
-      patternLayout {
-        // https://services.gradle.org/distributions/gradle-8.0.2-bin.zip
-        artifact("[organisation]/[module]-[revision]-bin.zip")
-      }
-      metadataSources { artifact() }
-    }
   }
 }
 
