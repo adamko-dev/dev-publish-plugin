@@ -10,9 +10,3 @@ dependencies {
   implementation(libs.gradlePlugin.pluginPublishPlugin)
   implementation(libs.gradlePlugin.bcvMu)
 }
-
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(11))
-  }
-}

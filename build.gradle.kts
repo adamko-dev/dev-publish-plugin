@@ -71,8 +71,8 @@ tasks.withType<Test>().configureEach {
 
 tasks.withType<KotlinCompile>().configureEach {
   compilerOptions {
-    freeCompilerArgs.addAll(
-      "-opt-in=dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi",
+    optIn.addAll(
+      "dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi",
     )
   }
 }
