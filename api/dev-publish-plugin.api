@@ -3,8 +3,9 @@ public final class dev/adamko/gradle/dev_publish/DevPublishPlugin : org/gradle/a
 	public static final field DEV_PUB__EXTENSION_NAME Ljava/lang/String;
 	public static final field DEV_PUB__MAVEN_REPO_DIR Ljava/lang/String;
 	public static final field DEV_PUB__MAVEN_REPO_NAME Ljava/lang/String;
-	public static final field DEV_PUB__PUBLICATION_INCOMING_DEPENDENCIES Ljava/lang/String;
-	public static final field DEV_PUB__PUBLICATION_PROVIDED_DEPENDENCIES Ljava/lang/String;
+	public static final field DEV_PUB__PUBLICATION_DEPENDENCIES Ljava/lang/String;
+	public static final field DEV_PUB__PUBLICATION_INCOMING Ljava/lang/String;
+	public static final field DEV_PUB__PUBLICATION_OUTGOING Ljava/lang/String;
 	public fun <init> (Lorg/gradle/api/provider/ProviderFactory;Lorg/gradle/api/file/ProjectLayout;Lorg/gradle/api/file/FileSystemOperations;Lorg/gradle/api/model/ObjectFactory;)V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/Project;)V

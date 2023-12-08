@@ -15,7 +15,7 @@ import javax.inject.Inject
  * Utility service for managing [dev.adamko.gradle.dev_publish.DevPublishPlugin] operations.
  *
  * This service is primarily used to ensure that [org.gradle.api.publish.maven.tasks.PublishToMavenRepository] tasks
- * do not run concurrently (via [org.gradle.api.services.BuildServiceSpec.getMaxParallelUsages], allowing for published
+ * do not run concurrently (via [org.gradle.api.services.BuildServiceSpec.getMaxParallelUsages]), allowing for published
  * files to be accurately captured and synced to the maven-dev repository.
  */
 @DevPublishInternalApi

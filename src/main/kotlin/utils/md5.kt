@@ -9,14 +9,7 @@ import java.math.BigInteger
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 
-//import java.io.SequenceInputStream
-//import java.util.*
-
-
 internal fun File.md5(): String = if (exists()) inputStream().md5() else "missing"
-//internal fun ByteArray.md5(): String = inputStream().md5()
-//internal fun Iterable<File>.md5(): String =
-//  SequenceInputStream(toEnumeration { it.inputStream() }).md5()
 
 private fun InputStream.md5(): String {
   val md5 = messageDigestMd5()
@@ -37,13 +30,3 @@ private fun InputStream.md5(): String {
 }
 
 private fun messageDigestMd5(): MessageDigest = MessageDigest.getInstance("MD5")
-
-//private fun <T, R> Iterable<T>.toEnumeration(
-//  convert: (T) -> R,
-//): Enumeration<R> {
-//  val iterator = iterator()
-//  return object : Enumeration<R> {
-//    override fun hasMoreElements(): Boolean = iterator.hasNext()
-//    override fun nextElement(): R = convert(iterator.next())
-//  }
-//}

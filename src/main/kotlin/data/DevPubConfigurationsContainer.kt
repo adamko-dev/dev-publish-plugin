@@ -1,10 +1,13 @@
 package dev.adamko.gradle.dev_publish.data
 
-import dev.adamko.gradle.dev_publish.DevPublishPlugin
-import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_PROVIDED_DEPENDENCIES
+import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_DEPENDENCIES
+import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_INCOMING
+import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_OUTGOING
+import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer.Attributes.Companion.DEV_PUB_USAGE
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.asConsumer
 import dev.adamko.gradle.dev_publish.utils.asProvider
+import dev.adamko.gradle.dev_publish.utils.forDependencies
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -28,31 +31,38 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
 
   private val devPubAttributes: Attributes = objects.createConfigurationAttributes()
 
+  private val testMavenPublicationDependencies = configurations.registerPublicationsDependencies()
   val testMavenPublicationConsumer = configurations.registerPublicationsConsumer()
   val testMavenPublicationProvider = configurations.registerPublicationsProvider()
 
   private fun ObjectFactory.createConfigurationAttributes(): Attributes {
     // register the attribute for consuming/providing
-    dependencies.attributesSchema.attribute(Attributes.DEV_PUB_USAGE)
-
+    dependencies.attributesSchema.attribute(DEV_PUB_USAGE)
     return newInstance<Attributes>()
   }
 
-  private fun ConfigurationContainer.registerPublicationsConsumer(): NamedDomainObjectProvider<Configuration> {
-    return register(DevPublishPlugin.DEV_PUB__PUBLICATION_INCOMING_DEPENDENCIES) {
-      asConsumer()
-      attributes { attribute(Attributes.DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
+  private fun ConfigurationContainer.registerPublicationsDependencies(): NamedDomainObjectProvider<Configuration> =
+    register(DEV_PUB__PUBLICATION_DEPENDENCIES) {
+      description = "Declare dependencies on test Maven Publications"
+      forDependencies()
+      attributes { attribute(DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
     }
-  }
 
-  private fun ConfigurationContainer.registerPublicationsProvider(): NamedDomainObjectProvider<Configuration> {
-    return register(DEV_PUB__PUBLICATION_PROVIDED_DEPENDENCIES) {
-      description = "Provide test Maven Publications to other subprojects"
-      asProvider()
-      extendsFrom(testMavenPublicationConsumer.get())
-      attributes { attribute(Attributes.DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
+  private fun ConfigurationContainer.registerPublicationsConsumer(): NamedDomainObjectProvider<Configuration> =
+    register(DEV_PUB__PUBLICATION_INCOMING) {
+      description = "Resolve test Maven Publications"
+      asConsumer()
+      attributes { attribute(DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
+      extendsFrom(testMavenPublicationDependencies.get())
     }
-  }
+
+  private fun ConfigurationContainer.registerPublicationsProvider(): NamedDomainObjectProvider<Configuration> =
+    register(DEV_PUB__PUBLICATION_OUTGOING) {
+      description = "Provide test Maven Publications"
+      asProvider()
+      attributes { attribute(DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
+      extendsFrom(testMavenPublicationDependencies.get())
+    }
 
   /**
    * Gradle [Configuration] Attributes for sharing files across subprojects.
@@ -61,11 +71,9 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
    */
   @DevPublishInternalApi
   abstract class Attributes
-  @Inject
-  constructor(
+  @Inject constructor(
     objects: ObjectFactory,
   ) {
-
     /** Indicates a [Configuration] contains a Maven Repository */
     val mavenRepoUsage: MavenPublishTestUsage = objects.named("maven-repository")
 
@@ -76,8 +84,8 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
     companion object {
       val DEV_PUB_USAGE = Attribute<MavenPublishTestUsage>("dev.adamko.gradle.dev_publish.usage")
 
-      private inline fun <reified T> Attribute(name: String): Attribute<T> =
-        Attribute.of(name, T::class.java)
+      /** Instantiate a new [Attribute] of type [T] */
+      private inline fun <reified T> Attribute(name: String): Attribute<T> = Attribute.of(name, T::class.java)
     }
   }
 

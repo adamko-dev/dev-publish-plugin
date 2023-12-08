@@ -10,6 +10,7 @@ import org.gradle.api.file.RelativePath
  * ```
  * isCanBeResolved = false
  * isCanBeConsumed = true
+ * isCanBeDeclared = false
  * ```
  */
 internal fun Configuration.asProvider(
@@ -17,16 +18,18 @@ internal fun Configuration.asProvider(
 ) {
   isCanBeResolved = false
   isCanBeConsumed = true
+  isCanBeDeclared = false
   isVisible = visible
 }
 
 
 /**
- * Mark this [Configuration] as one that will consume artifacts from other subprojects (also known as 'resolving')
+ * Mark this [Configuration] as one that will fetch artifacts (also known as 'resolving').
  *
  * ```
  * isCanBeResolved = true
  * isCanBeConsumed = false
+ * isCanBeDeclared = false
  * ```
  * */
 internal fun Configuration.asConsumer(
@@ -34,6 +37,26 @@ internal fun Configuration.asConsumer(
 ) {
   isCanBeResolved = true
   isCanBeConsumed = false
+  isCanBeDeclared = false
+  isVisible = visible
+}
+
+
+/**
+ * Mark this [Configuration] for declaring dependencies in the `dependencies {}` block.
+ *
+ * ```
+ * isCanBeResolved = false
+ * isCanBeConsumed = false
+ * isCanBeDeclared = true
+ * ```
+ * */
+internal fun Configuration.forDependencies(
+  visible: Boolean = false
+) {
+  isCanBeResolved = false
+  isCanBeConsumed = false
+  isCanBeDeclared = true
   isVisible = visible
 }
 

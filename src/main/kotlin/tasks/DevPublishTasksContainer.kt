@@ -17,16 +17,19 @@ abstract class DevPublishTasksContainer @Inject constructor(
   private val objects: ObjectFactory,
 ) {
 
-  val publishAllToDevRepo = tasks.registerPublishAllToDevRepoTask(devPubExtension)
-  val generatePublicationChecksum = tasks.registerGeneratePublicationChecksumTask(devPubExtension)
-  val updateDevRepo = tasks.registerUpdateDevRepoTask(devPubExtension)
+  val publishAllToDevRepo: TaskProvider<BaseDevPublishTask> =
+    tasks.registerPublishAllToDevRepoTask(devPubExtension)
+  val generatePublicationChecksum: TaskProvider<GeneratePublicationDataChecksumTask> =
+    tasks.registerGeneratePublicationChecksumTask(devPubExtension)
+  val updateDevRepo: TaskProvider<UpdateDevRepoTask> =
+    tasks.registerUpdateDevRepoTask(devPubExtension)
 
   private fun TaskContainer.registerPublishAllToDevRepoTask(
     devPubExtension: DevPublishPluginExtension,
   ): TaskProvider<BaseDevPublishTask> =
     register<BaseDevPublishTask>(PUBLISH_ALL_TO_DEV_REPO_TASK_NAME) {
       description = "Publishes all Maven publications to the dev Maven repository. " +
-          "This is an internal task that should not typically be referenced or called."
+          "This is an internal task that should not typically be manually referenced or called."
 
       outputs.dir(devPubExtension.stagingDevMavenRepo)
 
@@ -43,7 +46,7 @@ abstract class DevPublishTasksContainer @Inject constructor(
   ): TaskProvider<GeneratePublicationDataChecksumTask> =
     register<GeneratePublicationDataChecksumTask>(GENERATE_PUBLICATION_CHECKSUM_TASK) {
       description = "Generates a checksum from a publication, used for up-to-date checks. " +
-          "This is an internal task that should not typically be referenced or called."
+          "This is an internal task that should not typically be manually referenced or called."
       outputDirectory.convention(devPubExtension.checksumsStore)
       tempDir.convention(objects.directoryProperty().fileValue(temporaryDir))
     }

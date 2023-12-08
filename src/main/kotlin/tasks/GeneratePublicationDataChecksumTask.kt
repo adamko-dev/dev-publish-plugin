@@ -52,7 +52,7 @@ constructor(
       writeText(publicationsHash)
     }
 
-    logger.debug(
+    logger.info(
       "created publication data checksum {}: {}",
       file.relativeTo(rootDir),
       file.readText().lines().joinToString(" // ")

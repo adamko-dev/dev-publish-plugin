@@ -209,7 +209,7 @@ class DevPublishPlugin @Inject constructor(
     }
   }
 
-  /** React to [MavenPublishPlugin], and configure the appropriate tasks */
+  /** React to [LifecycleBasePlugin], and configure the appropriate tasks */
   private fun configureBasePlugin(
     project: Project,
     devPubTasks: DevPublishTasksContainer,
@@ -234,7 +234,8 @@ class DevPublishPlugin @Inject constructor(
 
     const val DEV_PUB__MAVEN_REPO_DIR = "maven-dev"
 
-    const val DEV_PUB__PUBLICATION_INCOMING_DEPENDENCIES = "devPublication"
-    const val DEV_PUB__PUBLICATION_PROVIDED_DEPENDENCIES = "devPublicationElements"
+    const val DEV_PUB__PUBLICATION_DEPENDENCIES = "devPublication"
+    const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
+    const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
   }
 }
