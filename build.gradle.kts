@@ -10,7 +10,7 @@ plugins {
   idea
 }
 
-project.version = "0.2.0-SNAPSHOT"
+project.version = "0.2.0"
 project.group = "dev.adamko.gradle"
 
 dependencies {
