@@ -1,6 +1,7 @@
 package dev.adamko.gradle.dev_publish.utils
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.RelativePath
 
 
@@ -13,7 +14,7 @@ import org.gradle.api.file.RelativePath
  * isCanBeDeclared = false
  * ```
  */
-internal fun Configuration.asProvider(
+internal fun Configuration.consumable(
   visible: Boolean = true
 ) {
   isCanBeResolved = false
@@ -32,7 +33,7 @@ internal fun Configuration.asProvider(
  * isCanBeDeclared = false
  * ```
  * */
-internal fun Configuration.asConsumer(
+internal fun Configuration.resolvable(
   visible: Boolean = false
 ) {
   isCanBeResolved = true
@@ -51,7 +52,7 @@ internal fun Configuration.asConsumer(
  * isCanBeDeclared = true
  * ```
  * */
-internal fun Configuration.forDependencies(
+internal fun Configuration.declarable(
   visible: Boolean = false
 ) {
   isCanBeResolved = false
@@ -69,3 +70,7 @@ internal fun RelativePath.dropDirectories(count: Int): RelativePath =
 /** Drop the first directory from the [RelativePath] */
 internal fun RelativePath.dropDirectory(): RelativePath =
   dropDirectories(1)
+
+
+/** Instantiate a new [Attribute] of type [T] */
+internal inline fun <reified T> Attribute(name: String): Attribute<T> = Attribute.of(name, T::class.java)

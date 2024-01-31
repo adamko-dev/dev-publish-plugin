@@ -1,12 +1,15 @@
 package dev.adamko.gradle.dev_publish
 
-import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer.Companion.newDevPubConfigurationsContainer
+import dev.adamko.gradle.dev_publish.data.DevPubAttributes
+import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
 import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
@@ -50,20 +53,45 @@ class DevPublishPlugin @Inject constructor(
       devPubExtension,
     )
 
-    val devPubConfigurations = objects.newDevPubConfigurationsContainer(
+    val devPubAttributes = DevPubAttributes(objects)
+
+    val devPubConfigurations = DevPubConfigurationsContainer(
+      devPubAttributes = devPubAttributes,
       dependencies = project.dependencies,
       configurations = project.configurations,
-      objects = objects,
     )
+
+    val resolvedDevRepos: Provider<Iterable<File>> =
+      devPubConfigurations.testMavenPublicationResolver.flatMap { conf ->
+        conf.incoming
+          .artifactView {
+            attributes {
+              attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
+//              attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
+            }
+            lenient(true)
+          }
+          .artifacts
+          .resolvedArtifacts
+          .map { artifacts ->
+            artifacts
+//              .filter { artifact ->
+//                artifact.variant.attributes.run {
+//                  getAttribute(USAGE_ATTRIBUTE) == devPubAttributes.devPublishUsage
+//                      &&
+//                      getAttribute(DevPublishTypeAttribute) == devPubAttributes.mavenRepositoryType
+//                }
+//              }
+              .map(ResolvedArtifactResult::getFile)
+          }
+      }
 
     devPubTasks.updateDevRepo.configure {
       // update this project's maven-test-repo with files from other subprojects
-      from(devPubConfigurations.testMavenPublicationConsumer.map { conf ->
-        conf.incoming.artifacts.artifactFiles
-      })
+      from(resolvedDevRepos)
     }
 
-    devPubConfigurations.testMavenPublicationProvider.configure {
+    devPubConfigurations.testMavenPublicationConsumable.configure {
       outgoing {
         artifact(devPubExtension.devMavenRepo) {
           builtBy(devPubTasks.updateDevRepo)
@@ -185,7 +213,7 @@ class DevPublishPlugin @Inject constructor(
       currentChecksum.orNull != storedChecksum.orNull
     }
 
-    doFirst {
+    doFirst("clear staging repo") {
       if (repoIsDevPub.get()) {
         // clear the staging repo so that we can only sync this publication's files in the doLast {} below
         fs.delete { delete(stagingDevMavenRepo) }
@@ -193,7 +221,7 @@ class DevPublishPlugin @Inject constructor(
       }
     }
 
-    doLast {
+    doLast("sync staging repo to publication store") {
       if (repoIsDevPub.get()) {
         logger.info("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}")
         fs.sync {
