@@ -6,12 +6,11 @@ import kotlin.annotation.AnnotationTarget.*
 
 
 /**
- * Functionality that is annotated with this API is intended only for use by Dokkatoo internal code,
+ * Functionality annotated with this API is intended only for use by
+ * [dev.adamko.gradle.dev_publish.DevPublishPlugin] internal code,
  * but it has been given
  * [`public` visibility](https://kotlinlang.org/docs/visibility-modifiers.html)
  * for technical reasons.
- *
- * Any code that is annotated with this may be used
  *
  * Anyone is welcome to
  * [opt in](https://kotlinlang.org/docs/opt-in-requirements.html#opt-in-to-using-api)
@@ -19,7 +18,7 @@ import kotlin.annotation.AnnotationTarget.*
  * hints.
  *
  * If you find yourself needing to opt in, then please report your use-case on
- * the issue tracker
+ * [the Dev Publish Plugin issue tracker](https://github.com/adamko-dev/dev-publish-plugin/issues).
  */
 @RequiresOptIn(
   "Internal API - may change at any time without notice",

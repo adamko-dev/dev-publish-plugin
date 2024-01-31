@@ -4,8 +4,9 @@ plugins {
   id("buildsrc.conventions.base")
   id("buildsrc.conventions.java-base")
   id("org.gradle.kotlin.kotlin-dsl")
+
+  id("buildsrc.conventions.maven-publishing")
   id("com.gradle.plugin-publish")
-  `maven-publish`
 }
 
 tasks.validatePlugins {

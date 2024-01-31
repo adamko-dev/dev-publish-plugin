@@ -6,7 +6,6 @@ plugins {
   buildsrc.conventions.`kotlin-gradle-plugin`
   dev.adamko.kotlin.`binary-compatibility-validator`
   `java-test-fixtures`
-  `maven-publish`
   idea
 }
 
