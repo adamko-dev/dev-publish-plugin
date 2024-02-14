@@ -1,11 +1,13 @@
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
+import dev.adamko.gradle.dev_publish.data.DevPubAttributes.Companion.DevPublishTypeAttribute
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
 import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
+import dev.adamko.gradle.dev_publish.utils.get
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
@@ -61,40 +63,44 @@ class DevPublishPlugin @Inject constructor(
       configurations = project.configurations,
     )
 
-    val resolvedDevRepos: Provider<Iterable<File>> =
+    val resolvedDevRepos: Provider<List<File>> =
       devPubConfigurations.testMavenPublicationResolver.flatMap { conf ->
         conf.incoming
           .artifactView {
             attributes {
               attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
-//              attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
+              attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
             }
             lenient(true)
+            @Suppress("UnstableApiUsage")
+            withVariantReselection()
           }
           .artifacts
           .resolvedArtifacts
           .map { artifacts ->
             artifacts
-//              .filter { artifact ->
-//                artifact.variant.attributes.run {
-//                  getAttribute(USAGE_ATTRIBUTE) == devPubAttributes.devPublishUsage
-//                      &&
-//                      getAttribute(DevPublishTypeAttribute) == devPubAttributes.mavenRepositoryType
-//                }
-//              }
+//              .filter { it.variant.attributes[USAGE_ATTRIBUTE] == devPubAttributes.devPublishUsage }
+//              .filter { it.variant.attributes[DevPublishTypeAttribute] == devPubAttributes.mavenRepositoryType }
+              .filter { it.variant.attributes[USAGE_ATTRIBUTE] != null }
+              .filter { it.variant.attributes[DevPublishTypeAttribute] != null }
               .map(ResolvedArtifactResult::getFile)
           }
       }
 
     devPubTasks.updateDevRepo.configure {
       // update this project's maven-test-repo with files from other subprojects
-      from(resolvedDevRepos)
+      repositoryContents.from(resolvedDevRepos)
     }
 
-    devPubConfigurations.testMavenPublicationConsumable.configure {
+    devPubConfigurations.testMavenPublicationApiElements.configure {
       outgoing {
-        artifact(devPubExtension.devMavenRepo) {
-          builtBy(devPubTasks.updateDevRepo)
+        attributes {
+          attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
+          attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
+        }
+        // Only share repos from _this_ subproject, not from the aggregated
+        artifacts(devPubExtension.publicationsStore.map { it.asFile.listFiles().orEmpty().toList() }) {
+          builtBy(devPubTasks.publishAllToDevRepo)
         }
       }
     }
@@ -179,11 +185,11 @@ class DevPublishPlugin @Inject constructor(
     inputs
       // must convert to FileTree, because the directory might not exist, and
       // Gradle won't accept directories that don't exist as inputs.
-      .files(checksumsStore.asFileTree)
+      .files(checksumsStore.asFileTree.elements)
       .withPropertyName("devPubChecksumsStoreFiles")
 
     outputs
-      .files(publicationStore.map { it.asFileTree })
+      .files(publicationStore.map { it.asFileTree.elements })
       .withPropertyName("devPubPublicationStore")
 
     val publicationData = devPubService.flatMap { service ->
@@ -263,6 +269,7 @@ class DevPublishPlugin @Inject constructor(
     const val DEV_PUB__MAVEN_REPO_DIR = "maven-dev"
 
     const val DEV_PUB__PUBLICATION_DEPENDENCIES = "devPublication"
+    const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
     const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
   }

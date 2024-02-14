@@ -1,13 +1,14 @@
 package dev.adamko.gradle.dev_publish.data
 
+import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_API_DEPENDENCIES
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_DEPENDENCIES
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_INCOMING
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_OUTGOING
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes.Companion.DevPublishTypeAttribute
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
-import dev.adamko.gradle.dev_publish.utils.resolvable
 import dev.adamko.gradle.dev_publish.utils.consumable
 import dev.adamko.gradle.dev_publish.utils.declarable
+import dev.adamko.gradle.dev_publish.utils.resolvable
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -29,10 +30,18 @@ class DevPubConfigurationsContainer(
     dependencies.attributesSchema.attribute(DevPublishTypeAttribute)
   }
 
-  private val testMavenPublicationDependencies: NamedDomainObjectProvider<Configuration> =
+  private val devPublicationApiDependencies: NamedDomainObjectProvider<Configuration> =
+    configurations.register(DEV_PUB__PUBLICATION_API_DEPENDENCIES) {
+      description =
+        "Declare dependencies on test Maven Publications, that will be propagated to consumers of this subproject"
+      declarable()
+    }
+
+  private val devPublicationDependencies: NamedDomainObjectProvider<Configuration> =
     configurations.register(DEV_PUB__PUBLICATION_DEPENDENCIES) {
       description = "Declare dependencies on test Maven Publications"
       declarable()
+      extendsFrom(devPublicationApiDependencies.get())
     }
 
   val testMavenPublicationResolver: NamedDomainObjectProvider<Configuration> =
@@ -43,10 +52,10 @@ class DevPubConfigurationsContainer(
         attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
         attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
       }
-      extendsFrom(testMavenPublicationDependencies.get())
+      extendsFrom(devPublicationDependencies.get())
     }
 
-  val testMavenPublicationConsumable: NamedDomainObjectProvider<Configuration> =
+  val testMavenPublicationApiElements: NamedDomainObjectProvider<Configuration> =
     configurations.register(DEV_PUB__PUBLICATION_OUTGOING) {
       description = "Provide test Maven Publications"
       consumable()
@@ -54,7 +63,7 @@ class DevPubConfigurationsContainer(
         attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
         attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
       }
-      extendsFrom(testMavenPublicationDependencies.get())
+      extendsFrom(devPublicationApiDependencies.get())
     }
 
   @DevPublishInternalApi

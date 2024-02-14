@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.intellij.lang.annotations.Language
 
-class MultiProjectTest : FunSpec({
+class PublicationApiPropagationTest : FunSpec({
 
   context("test multi-module project") {
     val project = project()
@@ -72,7 +72,6 @@ class MultiProjectTest : FunSpec({
     }
   }
 }) {
-
   companion object {
 
     private fun TestScope.project() = gradleKtsProjectTest(testCase.name.testName.replaceNonAlphaNumeric()) {
