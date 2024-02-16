@@ -2,6 +2,7 @@ package dev.adamko.gradle.dev_publish.utils
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.RelativePath
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.util.GradleVersion
@@ -113,3 +114,7 @@ internal fun RelativePath.dropDirectories(count: Int): RelativePath =
 /** Drop the first directory from the [RelativePath] */
 internal fun RelativePath.dropDirectory(): RelativePath =
   dropDirectories(1)
+
+
+/** Instantiate a new [Attribute] of type [T] */
+internal inline fun <reified T> Attribute(name: String): Attribute<T> = Attribute.of(name, T::class.java)
