@@ -3,6 +3,7 @@ package dev.adamko.gradle.dev_publish.utils
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.RelativePath
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.util.GradleVersion
@@ -118,3 +119,7 @@ internal fun RelativePath.dropDirectory(): RelativePath =
 
 /** Instantiate a new [Attribute] of type [T] */
 internal inline fun <reified T> Attribute(name: String): Attribute<T> = Attribute.of(name, T::class.java)
+
+
+internal operator fun <T> AttributeContainer.get(key: Attribute<T>): T? =
+  getAttribute(key)

@@ -2,7 +2,10 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.dropDirectory
-import org.gradle.api.file.*
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
@@ -55,6 +58,10 @@ constructor(
   abstract val devRepo: DirectoryProperty
 
   /** @see repositoryContents */
+  @Deprecated(
+    "This helper function will be removed and can be replaced with adding files into `repositoryContents`",
+    ReplaceWith("repositoryContents.from(files)"),
+  )
   open fun from(files: Provider<Iterable<File>>) {
     repositoryContents.from(files)
   }
