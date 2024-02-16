@@ -69,11 +69,16 @@ fun gradleKtsProjectTest(
       |
       |pluginManagement {
       |  repositories {
-      |    maven(file("$testMavenRepoPathString")) {
-      |      mavenContent {
-      |        includeGroup("dev.adamko.dev-publish")
-      |        includeGroup("dev.adamko.gradle")
-      |      }
+      |    exclusiveContent {
+      |        forRepository {
+      |            maven(file("$testMavenRepoPathString")) {
+      |                name = "MavenDevRepo"
+      |            }
+      |        }
+      |        filter { 
+      |          includeGroup("dev.adamko.dev-publish")
+      |          includeGroup("dev.adamko.gradle")
+      |        }
       |    }
       |    mavenCentral()
       |    gradlePluginPortal()
