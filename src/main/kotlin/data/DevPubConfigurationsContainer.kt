@@ -1,6 +1,6 @@
 package dev.adamko.gradle.dev_publish.data
 
-import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_API_DEPENDENCIES
+import dev.adamko.gradle.dev_publish.DevPublishPlugin
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_DEPENDENCIES
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_INCOMING
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_OUTGOING
@@ -31,7 +31,7 @@ class DevPubConfigurationsContainer(
   }
 
   private val devPublicationApiDependencies: NamedDomainObjectProvider<Configuration> =
-    configurations.register(DEV_PUB__PUBLICATION_API_DEPENDENCIES) {
+    configurations.register(DevPublishPlugin.DEV_PUB__PUBLICATION_API_DEPENDENCIES) {
       description =
         "Declare dependencies on test Maven Publications, that will be propagated to consumers of this subproject"
       declarable()

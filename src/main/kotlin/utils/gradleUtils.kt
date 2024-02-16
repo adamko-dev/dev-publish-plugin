@@ -1,23 +1,34 @@
 package dev.adamko.gradle.dev_publish.utils
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.RelativePath
-import org.gradle.kotlin.dsl.provideDelegate
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.util.GradleVersion
-import kotlin.properties.PropertyDelegateProvider
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KFunction1
-import kotlin.reflect.KProperty
 
 
-internal val CurrentGradleVersion: GradleVersion
-  get() = GradleVersion.current()
-
-
-private operator fun GradleVersion.compareTo(version: String): Int =
-  compareTo(GradleVersion.version(version))
+/**
+ * Mark this [Configuration] as one that should be used to declare dependencies in
+ * [Project.dependencies] block.
+ *
+ * Declarable Configurations should be extended by [resolvable] and [consumable] Configurations.
+ *
+ * ```
+ * isCanBeResolved = false
+ * isCanBeConsumed = false
+ * isCanBeDeclared = true
+ * ```
+ */
+internal fun Configuration.declarable(
+  visible: Boolean = false,
+) {
+  isCanBeResolved = false
+  isCanBeConsumed = false
+  canBeDeclared = true
+  isVisible = visible
+}
 
 
 /**
@@ -30,7 +41,7 @@ private operator fun GradleVersion.compareTo(version: String): Int =
  * ```
  */
 internal fun Configuration.consumable(
-  visible: Boolean = true
+  visible: Boolean = true,
 ) {
   isCanBeResolved = false
   isCanBeConsumed = true
@@ -40,16 +51,16 @@ internal fun Configuration.consumable(
 
 
 /**
- * Mark this [Configuration] as one that will fetch artifacts (also known as 'resolving').
+ * Mark this [Configuration] as one that will consume (also known as 'resolving') artifacts from declared dependencies
  *
  * ```
  * isCanBeResolved = true
  * isCanBeConsumed = false
  * isCanBeDeclared = false
  * ```
- * */
+ */
 internal fun Configuration.resolvable(
-  visible: Boolean = false
+  visible: Boolean = false,
 ) {
   isCanBeResolved = true
   isCanBeConsumed = false
@@ -59,75 +70,41 @@ internal fun Configuration.resolvable(
 
 
 /**
- * Mark this [Configuration] for declaring dependencies in the `dependencies {}` block.
+ * Enable/disable [Configuration.isCanBeDeclared] only if it is supported by the
+ * [CurrentGradleVersion]
  *
- * ```
- * isCanBeResolved = false
- * isCanBeConsumed = false
- * isCanBeDeclared = true
- * ```
- * */
-internal fun Configuration.declarable(
-  visible: Boolean = false
-) {
-  isCanBeResolved = false
-  isCanBeConsumed = false
-  canBeDeclared = true
-  isVisible = visible
-}
-
-
-@Suppress("UnstableApiUsage")
+ * This function should be removed when the minimal supported Gradle version is 8.2.
+ */
 private var Configuration.canBeDeclared: Boolean
-  get() = if (CurrentGradleVersion >= "8.2") {
-    isCanBeDeclared
-  } else {
-    false
+  get() {
+    return if (configurationIsCanBeDeclaredEnabled) {
+      @Suppress("UnstableApiUsage")
+      isCanBeDeclared
+    } else {
+      false
+    }
   }
   set(value) {
-    if (CurrentGradleVersion >= "8.2") {
+    if (configurationIsCanBeDeclaredEnabled) {
+      @Suppress("UnstableApiUsage")
       isCanBeDeclared = value
+    } else {
+      // do nothing
     }
   }
 
-
-//class x {
-//  val Configuration.f: Boolean by
-//  GradleVersionRequire2<Configuration, Boolean>(
-//    Configuration::isCanBeDeclared,
-//    Configuration::setCanBeDeclared
-//  ){ it > "8.3"}
-//}
-//
-//fun <REF: Any?, T : Any> GradleVersionRequire2(
-//  getter: (REF) -> T,
-//  setter: REF.(T?) -> Unit,
-//  versionPredicate: (gradle: GradleVersion) -> Boolean,
-//
-//) = PropertyDelegateProvider { thisRef: Any?, property ->
-//  GradleVersionRequire(getter, setter, versionPredicate)
-//}
+/** `true` if [Configuration.isCanBeDeclared] is valid for the current Gradle version. */
+private val configurationIsCanBeDeclaredEnabled: Boolean = CurrentGradleVersion >= "8.2"
 
 
-//class GradleVersionRequire<REF: Any?, T : Any>(
-//  private val getter: (REF) -> T,
-//  private val setter: REF.(T?) -> Unit,
-//  private val versionPredicate: (gradle: GradleVersion) -> Boolean,
-//) : ReadWriteProperty<REF, T?> {
-//  override operator fun getValue(thisRef: REF, property: KProperty<*>): T? {
-//    return if (versionPredicate(CurrentGradleVersion)) {
-//      getter(thisRef)
-//    } else {
-//      null
-//    }
-//  }
-//
-//  override operator fun setValue(thisRef: REF, property: KProperty<*>, value: T?) {
-//    if (versionPredicate(CurrentGradleVersion)) {
-//      setter(thisRef, value)
-//    }
-//  }
-//}
+/** Shortcut for [GradleVersion.current] */
+internal val CurrentGradleVersion: GradleVersion
+  get() = GradleVersion.current()
+
+
+/** Compare a [GradleVersion] to a [version]. */
+internal operator fun GradleVersion.compareTo(version: String): Int =
+  compareTo(GradleVersion.version(version))
 
 
 /** Drop the first [count] directories from the [RelativePath] */

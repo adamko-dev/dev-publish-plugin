@@ -19,7 +19,7 @@ class DevPubAttributes(
   objects: ObjectFactory,
 ) {
   @DevPublishInternalApi
-  interface DevPublishType: Named
+  interface DevPublishType : Named
 
   /** Indicates a [Configuration] contains a Maven Repository */
   val devPublishUsage: Usage = objects.named("dev-publish")
@@ -28,6 +28,7 @@ class DevPubAttributes(
 
   @DevPublishInternalApi
   companion object {
-    val DevPublishTypeAttribute: Attribute<DevPublishType> = Attribute("dev.adamko.gradle.dev_publish.type")
+    val DevPublishTypeAttribute: Attribute<DevPublishType> =
+      Attribute("dev.adamko.gradle.dev_publish.type")
   }
 }
