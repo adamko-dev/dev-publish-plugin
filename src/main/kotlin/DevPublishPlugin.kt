@@ -185,7 +185,7 @@ class DevPublishPlugin @Inject constructor(
       currentChecksum.orNull != storedChecksum.orNull
     }
 
-    doFirst {
+    doFirst("clear staging repo") {
       if (repoIsDevPub.get()) {
         // clear the staging repo so that we can only sync this publication's files in the doLast {} below
         fs.delete { delete(stagingDevMavenRepo) }
@@ -193,7 +193,7 @@ class DevPublishPlugin @Inject constructor(
       }
     }
 
-    doLast {
+    doLast("sync staging repo to publication store") {
       if (repoIsDevPub.get()) {
         logger.info("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}")
         fs.sync {
