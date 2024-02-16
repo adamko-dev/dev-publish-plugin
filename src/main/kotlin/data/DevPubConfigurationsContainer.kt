@@ -5,9 +5,9 @@ import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICA
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_OUTGOING
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer.Attributes.Companion.DEV_PUB_USAGE
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
-import dev.adamko.gradle.dev_publish.utils.asConsumer
-import dev.adamko.gradle.dev_publish.utils.asProvider
-import dev.adamko.gradle.dev_publish.utils.forDependencies
+import dev.adamko.gradle.dev_publish.utils.consumable
+import dev.adamko.gradle.dev_publish.utils.declarable
+import dev.adamko.gradle.dev_publish.utils.resolvable
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -44,14 +44,13 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
   private fun ConfigurationContainer.registerPublicationsDependencies(): NamedDomainObjectProvider<Configuration> =
     register(DEV_PUB__PUBLICATION_DEPENDENCIES) {
       description = "Declare dependencies on test Maven Publications"
-      forDependencies()
-      attributes { attribute(DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
+      declarable()
     }
 
   private fun ConfigurationContainer.registerPublicationsConsumer(): NamedDomainObjectProvider<Configuration> =
     register(DEV_PUB__PUBLICATION_INCOMING) {
       description = "Resolve test Maven Publications"
-      asConsumer()
+      resolvable()
       attributes { attribute(DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
       extendsFrom(testMavenPublicationDependencies.get())
     }
@@ -59,7 +58,7 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
   private fun ConfigurationContainer.registerPublicationsProvider(): NamedDomainObjectProvider<Configuration> =
     register(DEV_PUB__PUBLICATION_OUTGOING) {
       description = "Provide test Maven Publications"
-      asProvider()
+      consumable()
       attributes { attribute(DEV_PUB_USAGE, devPubAttributes.mavenRepoUsage) }
       extendsFrom(testMavenPublicationDependencies.get())
     }
