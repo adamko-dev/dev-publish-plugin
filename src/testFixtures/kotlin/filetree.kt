@@ -66,7 +66,8 @@ private fun File.listDirectoryEntries(
       } else {
         it != this@listDirectoryEntries // skip the top directory
       }
-    }.sorted()
+    }
+    .sortedWith(FileSorter)
 
 
 private fun File.isEmptyDir(
@@ -137,4 +138,18 @@ private class PathGlobMatchersImpl : PathGlobMatchers {
   /** @see matches */
   override fun matches(file: File): Boolean = matches(file.toPath())
 
+}
+
+
+/**
+ * Directories before files, otherwise sort by filename.
+ */
+private object FileSorter : Comparator<File> {
+  override fun compare(o1: File, o2: File): Int {
+    return when {
+      o1.isDirectory && o2.isFile -> -1 // directories before files
+      o1.isFile && o2.isDirectory -> +1 // files after directories
+      else                        -> o1.name.compareTo(o2.name)
+    }
+  }
 }
