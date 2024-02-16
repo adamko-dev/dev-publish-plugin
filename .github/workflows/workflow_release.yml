@@ -41,17 +41,3 @@ jobs:
       packages: write
     with:
       checkout-ref: ${{ inputs.checkout-ref }}
-
-  publish-site:
-    needs: tests
-    # only publish when manually triggered, or it's for a release
-    if: inputs.checkout-ref || (github.event_name == 'release' && github.event.action == 'created')
-    uses: ./.github/workflows/run_publish_site.yml
-    permissions:
-      checks: write
-      contents: read
-      id-token: write
-      packages: write
-      pages: write
-    with:
-      checkout-ref: ${{ inputs.checkout-ref }}
