@@ -1,4 +1,4 @@
-import buildsrc.utils.excludeGeneratedGradleDsl
+import buildsrc.utils.excludeProjectConfigurationDirs
 import buildsrc.utils.skipTestFixturesPublications
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -78,7 +78,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
 idea {
   module {
-    excludeGeneratedGradleDsl(layout)
+    excludeProjectConfigurationDirs(layout, providers)
     excludeDirs.addAll(
       layout.files(
         ".idea",
