@@ -1,17 +1,16 @@
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
-import dev.adamko.gradle.dev_publish.data.DevPubAttributes.Companion.DevPublishTypeAttribute
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
 import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
-import dev.adamko.gradle.dev_publish.utils.get
+import dev.adamko.gradle.dev_publish.utils.sortedElements
+import java.io.File
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
-import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
@@ -26,8 +25,6 @@ import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
-import java.io.File
-import javax.inject.Inject
 
 /**
  * Utility plugin for publishing subprojects to a local file-based Maven repository.
@@ -53,7 +50,7 @@ class DevPublishPlugin @Inject constructor(
     val devPubTasks = DevPublishTasksContainer(
       tasks = project.tasks,
       devPubExtension = devPubExtension,
-      objects = objects
+      objects = objects,
     )
 
     val devPubAttributes = DevPubAttributes(objects)
@@ -64,45 +61,16 @@ class DevPublishPlugin @Inject constructor(
       configurations = project.configurations,
     )
 
-    val resolvedDevRepos: Provider<List<File>> =
-      devPubConfigurations.testMavenPublicationResolver.flatMap { conf ->
-        conf.incoming
-          .artifactView {
-            attributes {
-              attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
-              attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
-            }
-            lenient(true)
-            @Suppress("UnstableApiUsage")
-            withVariantReselection()
-          }
-          .artifacts
-          .resolvedArtifacts
-          .map { artifacts ->
-            artifacts
-//              .filter { it.variant.attributes[USAGE_ATTRIBUTE] == devPubAttributes.devPublishUsage }
-//              .filter { it.variant.attributes[DevPublishTypeAttribute] == devPubAttributes.mavenRepositoryType }
-              .filter { it.variant.attributes[USAGE_ATTRIBUTE] != null }
-              .filter { it.variant.attributes[DevPublishTypeAttribute] != null }
-              .map(ResolvedArtifactResult::getFile)
-          }
-      }
-
     devPubTasks.updateDevRepo.configure {
       // update this project's maven-test-repo with files from other subprojects
-      repositoryContents.from(resolvedDevRepos)
+      repositoryContents.from(devPubConfigurations.testMavenPublicationResolver)
+//      repositoryContents.from(devPubConfigurations.resolvedDevRepos1())
     }
 
-    devPubConfigurations.testMavenPublicationApiElements.configure {
-      outgoing {
-        attributes {
-          attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
-          attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
-        }
-        // Only share repos from _this_ subproject, not from the aggregated
-        artifacts(devPubExtension.publicationsStore.map { it.asFile.listFiles().orEmpty().toList() }) {
-          builtBy(devPubTasks.publishAllToDevRepo)
-        }
+    devPubConfigurations.testMavenPublicationApiElements.outgoing {
+      // Only share repos from _this_ subproject, not from the aggregated repo
+      artifact(devPubExtension.publicationsStore) {
+        builtBy(devPubTasks.publishAllToDevRepo)
       }
     }
 
@@ -135,14 +103,10 @@ class DevPublishPlugin @Inject constructor(
     }
   }
 
-  private fun BuildServiceRegistry.registerDevPubService(): Provider<DevPublishService> {
-    return registerIfAbsent(
-      SERVICE_NAME,
-      DevPublishService::class
-    ) {
+  private fun BuildServiceRegistry.registerDevPubService(): Provider<DevPublishService> =
+    registerIfAbsent(SERVICE_NAME, DevPublishService::class) {
       maxParallelUsages.set(1)
     }
-  }
 
   /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks */
   private fun configureMavenPublishingPlugin(
@@ -184,13 +148,13 @@ class DevPublishPlugin @Inject constructor(
     inputs.property("repoIsDevPub", repoIsDevPub)
 
     inputs
-      // must convert to FileTree, because the directory might not exist, and
+      // Must convert to FileTree, because the directory might not exist, and
       // Gradle won't accept directories that don't exist as inputs.
-      .files(checksumsStore.asFileTree.elements)
+      .files(checksumsStore.asFileTree.sortedElements())
       .withPropertyName("devPubChecksumsStoreFiles")
 
     outputs
-      .files(publicationStore.map { it.asFileTree.elements })
+      .files(publicationStore.map { it.asFileTree.sortedElements() })
       .withPropertyName("devPubPublicationStore")
 
     val publicationData = devPubService.flatMap { service ->

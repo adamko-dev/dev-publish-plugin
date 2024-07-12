@@ -4,7 +4,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.util.GradleVersion
 
@@ -124,3 +127,7 @@ internal inline fun <reified T> Attribute(name: String): Attribute<T> =
 
 internal operator fun <T> AttributeContainer.get(key: Attribute<T>): T? =
   getAttribute(key)
+
+
+internal fun FileTree.sortedElements(): Provider<out Collection<FileSystemLocation>> =
+  elements.map { it.sortedBy(FileSystemLocation::getAsFile) }

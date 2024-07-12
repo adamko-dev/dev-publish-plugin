@@ -2,6 +2,7 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.dropDirectory
+import dev.adamko.gradle.dev_publish.utils.sortedElements
 import java.io.File
 import javax.inject.Inject
 import org.gradle.api.file.ConfigurableFileCollection
@@ -39,7 +40,7 @@ constructor(
   @get:PathSensitive(RELATIVE)
   @DevPublishInternalApi
   protected val publicationsStoreFiles: Provider<out Collection<FileSystemLocation>>
-    get() = publicationsStore.asFileTree.elements.map { it.sortedBy(FileSystemLocation::getAsFile) }
+    get() = publicationsStore.asFileTree.sortedElements()
 
   /**
    * Additional files to include in [devRepo].
