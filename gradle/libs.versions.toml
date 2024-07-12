@@ -1,6 +1,6 @@
 [versions]
 
-junit = "5.10.2"
+junit = "5.10.3"
 kotest = "5.9.1"
 
 gradlePlugin-pluginPublishPlugin = "1.2.1"
