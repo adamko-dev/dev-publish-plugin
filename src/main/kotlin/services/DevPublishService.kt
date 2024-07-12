@@ -2,13 +2,13 @@ package dev.adamko.gradle.dev_publish.services
 
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
+import javax.inject.Inject
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.kotlin.dsl.newInstance
-import javax.inject.Inject
 
 
 /**
@@ -47,6 +47,6 @@ abstract class DevPublishService @Inject constructor(
 
   @DevPublishInternalApi
   companion object {
-    const val SERVICE_NAME = "DevPublishManifest"
+    const val SERVICE_NAME = "DevPublishService"
   }
 }
