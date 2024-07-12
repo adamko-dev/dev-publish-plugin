@@ -16,6 +16,7 @@ import javax.inject.Inject
 @DisableCachingByDefault
 abstract class GeneratePublicationDataChecksumTask
 @Inject
+@DevPublishInternalApi
 constructor(
   private val files: FileSystemOperations,
 ) : BaseDevPublishTask() {
