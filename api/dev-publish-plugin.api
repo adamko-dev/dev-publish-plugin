@@ -38,7 +38,6 @@ public abstract interface annotation class dev/adamko/gradle/dev_publish/interna
 public abstract class dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask : org/gradle/api/DefaultTask {
 	public static final field Companion Ldev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask$Companion;
 	public static final field TASK_GROUP Ljava/lang/String;
-	public fun <init> ()V
 }
 
 public final class dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask$Companion {
@@ -50,18 +49,14 @@ public final class dev/adamko/gradle/dev_publish/tasks/DevPublishTasksContainer$
 }
 
 public abstract class dev/adamko/gradle/dev_publish/tasks/GeneratePublicationDataChecksumTask : dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask {
-	public fun <init> (Lorg/gradle/api/file/FileSystemOperations;)V
-	public final fun generate ()V
 	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getPublicationData ()Lorg/gradle/api/NamedDomainObjectContainer;
 }
 
 public abstract class dev/adamko/gradle/dev_publish/tasks/UpdateDevRepoTask : dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask {
-	public fun <init> (Lorg/gradle/api/file/FileSystemOperations;)V
 	public fun from (Lorg/gradle/api/provider/Provider;)V
 	public abstract fun getDevRepo ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getPublicationsStore ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getRepositoryContents ()Lorg/gradle/api/file/ConfigurableFileCollection;
-	public final fun updateDevRepo ()V
 }
 
