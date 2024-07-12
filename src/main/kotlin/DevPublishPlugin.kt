@@ -50,9 +50,10 @@ class DevPublishPlugin @Inject constructor(
 
     val devPubService = project.gradle.sharedServices.registerDevPubService()
 
-    val devPubTasks: DevPublishTasksContainer = objects.newInstance(
-      project.tasks,
-      devPubExtension,
+    val devPubTasks = DevPublishTasksContainer(
+      tasks = project.tasks,
+      devPubExtension = devPubExtension,
+      objects = objects
     )
 
     val devPubAttributes = DevPubAttributes(objects)
