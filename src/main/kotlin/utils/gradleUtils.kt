@@ -41,7 +41,7 @@ internal fun Configuration.declarable(
  * ```
  */
 internal fun Configuration.consumable(
-  visible: Boolean = true,
+  visible: Boolean = false,
 ) {
   isCanBeResolved = false
   isCanBeConsumed = true
