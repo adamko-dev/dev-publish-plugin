@@ -2,6 +2,8 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.dropDirectory
+import java.io.File
+import javax.inject.Inject
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemLocation
@@ -9,8 +11,6 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import java.io.File
-import javax.inject.Inject
 
 @CacheableTask
 abstract class UpdateDevRepoTask
@@ -68,6 +68,7 @@ constructor(
   }
 
   @TaskAction
+  @DevPublishInternalApi
   fun updateDevRepo() {
     fs.sync {
       from(publicationsStore) {

@@ -2,15 +2,16 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
-import dev.adamko.gradle.dev_publish.services.DevPublishService
+import dev.adamko.gradle.dev_publish.utils.info
+import javax.inject.Inject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
-import javax.inject.Inject
 
 
 @DisableCachingByDefault
@@ -33,31 +34,30 @@ constructor(
   @DevPublishInternalApi
   abstract val tempDir: DirectoryProperty
 
-  /** Used for prettier log messages */
+  /** Used for prettier log messages. */
   private val rootDir = project.rootDir
 
   @TaskAction
+  @DevPublishInternalApi
   fun generate() {
-    files.delete { delete(tempDir) }
+    val tempDir = tempDir.get().asFile
+
+    val publicationDataChecksumFile = tempDir.resolve("publication-data-checksum.txt").apply {
+      parentFile.mkdirs()
+    }
 
     val publicationsHash = publicationData.joinToString("\n") { data ->
       logger.info("Creating publication data checksum for ${data.name} ${data.artifacts.asPath}")
       data.createChecksumContent()
     }
 
-    val file = tempDir.file("publication-data-checksum.txt").get().asFile.apply {
-      if (!exists()) {
-        parentFile.mkdirs()
-        createNewFile()
-      }
-      writeText(publicationsHash)
-    }
+    publicationDataChecksumFile.writeText(publicationsHash)
 
-    logger.info(
-      "created publication data checksum {}: {}",
-      file.relativeTo(rootDir),
-      file.readText().lines().joinToString(" // ")
-    )
+    logger.info {
+      val path = publicationDataChecksumFile.relativeTo(rootDir)
+      val content = publicationDataChecksumFile.readText().lines().joinToString(" // ")
+      "created publication data checksum $path: $content"
+    }
 
     files.sync {
       from(tempDir)
