@@ -107,18 +107,19 @@ internal operator fun GradleVersion.compareTo(version: String): Int =
   compareTo(GradleVersion.version(version))
 
 
-/** Drop the first [count] directories from the [RelativePath] */
+/** Drop the first [count] directories from [RelativePath] */
 internal fun RelativePath.dropDirectories(count: Int): RelativePath =
   RelativePath(true, *segments.drop(count).toTypedArray())
 
 
-/** Drop the first directory from the [RelativePath] */
+/** Drop the first directory from [RelativePath] */
 internal fun RelativePath.dropDirectory(): RelativePath =
   dropDirectories(1)
 
 
 /** Instantiate a new [Attribute] of type [T] */
-internal inline fun <reified T> Attribute(name: String): Attribute<T> = Attribute.of(name, T::class.java)
+internal inline fun <reified T> Attribute(name: String): Attribute<T> =
+  Attribute.of(name, T::class.java)
 
 
 internal operator fun <T> AttributeContainer.get(key: Attribute<T>): T? =
