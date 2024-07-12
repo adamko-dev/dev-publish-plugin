@@ -4,7 +4,7 @@ import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
-import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.intellij.lang.annotations.Language
 
@@ -36,8 +36,7 @@ class ApiPropagationTest : FunSpec({
 
           val mavenDevDir = project.projectDir.resolve("project-aggregate/build/maven-dev")
 
-          mavenDevDir.toTreeString().shouldBeEqual(ExpectedDevRepoTree)
-//          mavenDevDir.toTreeString() shouldBe ExpectedDevRepoTree
+          mavenDevDir.toTreeString() shouldBe ExpectedDevRepoTree
         }
       }
     }
