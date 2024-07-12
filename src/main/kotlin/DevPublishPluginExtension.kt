@@ -4,14 +4,14 @@ import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import org.gradle.api.file.DirectoryProperty
 
 /**
- * Settings for controlling the behaviour of [DevPublishPlugin] and tasks.
+ * Settings for controlling the behaviour of [DevPublishPlugin] and its tasks.
  */
 abstract class DevPublishPluginExtension {
 
   /**
    * Location of the file-based test Maven repository.
    *
-   * The repository is specific per subproject and should not be shared between subprojects.
+   * The repository is specific per subproject and should not be referenced by other subprojects.
    *
    * This property should be passed into tests and provided as a Maven repository.
    */
@@ -20,7 +20,7 @@ abstract class DevPublishPluginExtension {
   /**
    * Location of temporary Maven repository, that will be used to populate [devMavenRepo].
    *
-   * This value should not typically be configured or used.
+   * This value is intended for internal use and should not typically be configured in build scripts.
    */
   @DevPublishInternalApi
   abstract val stagingDevMavenRepo: DirectoryProperty
@@ -28,7 +28,7 @@ abstract class DevPublishPluginExtension {
   /**
    * Temporary storage of individual publications.
    *
-   * This value should not typically be configured or used.
+   * This value is intended for internal use and should not typically be configured in build scripts.
    */
   @DevPublishInternalApi
   abstract val publicationsStore: DirectoryProperty
@@ -38,7 +38,7 @@ abstract class DevPublishPluginExtension {
    * [dev.adamko.gradle.dev_publish.data.PublicationData]
    * checksums used to determine if a publication task is up-to-date.
    *
-   * This value should not typically be configured or used.
+   * This value is intended for internal use and should not typically be configured in build scripts.
    */
   @DevPublishInternalApi
   abstract val checksumsStore: DirectoryProperty
