@@ -1,10 +1,13 @@
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer.Companion.newDevPubConfigurationsContainer
+import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
 import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
+import java.io.File
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileSystemOperations
@@ -21,8 +24,6 @@ import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
-import java.io.File
-import javax.inject.Inject
 
 /**
  * Utility plugin for publishing subprojects to a local file-based Maven repository.
@@ -33,7 +34,10 @@ import javax.inject.Inject
  *
  * This is useful for testing, as Maven metadata and Plugin Marker artifact gets published correctly.
  */
-class DevPublishPlugin @Inject constructor(
+class DevPublishPlugin
+@Inject
+@DevPublishInternalApi
+constructor(
   private val providers: ProviderFactory,
   private val layout: ProjectLayout,
   private val fs: FileSystemOperations,
