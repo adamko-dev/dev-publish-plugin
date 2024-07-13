@@ -3,6 +3,7 @@ package dev.adamko.gradle.dev_publish.services
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import javax.inject.Inject
+import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.publish.maven.MavenPublication
@@ -29,24 +30,32 @@ abstract class DevPublishService @Inject constructor(
 
   /** Create an instance of [PublicationData] from [publication]. */
   fun createPublicationData(
-    publication: MavenPublication?
+    publication: MavenPublication?,
   ): PublicationData? {
-    if (publication == null) return null
+    if (publication == null) {
+      logger.warn("cannot create PublicationData - MavenPublication is null")
+      return null
+    }
+
+    // TODO de-dupe
+    val artifacts = providers.provider { publication.artifacts }
+      .map { artifacts ->
+        objects.fileCollection()
+          .from(artifacts.map { it.file })
+          .builtBy(artifacts)
+      }
+    val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
 
     return objects.newInstance<PublicationData>(publication.name).apply {
-      identifier.set(
-        providers.provider {
-          "${publication.groupId}:${publication.artifactId}:${publication.version}"
-        }
-      )
-      artifacts.from(providers.provider {
-        publication.artifacts.map { it.file }
-      })
+      this.identifier.set(identifier)
+      this.artifacts.from(artifacts)
     }
   }
 
   @DevPublishInternalApi
   companion object {
+    private val logger = Logging.getLogger(DevPublishService::class.java)
+
     const val SERVICE_NAME = "DevPublishService"
   }
 }

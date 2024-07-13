@@ -1,13 +1,13 @@
 package dev.adamko.gradle.dev_publish
 
+import dev.adamko.gradle.dev_publish.data.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
+import dev.adamko.gradle.dev_publish.data.LoadPublicationChecksum.Companion.loadPublicationChecksum
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
-import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
-import dev.adamko.gradle.dev_publish.utils.sortedElements
-import java.io.File
+import dev.adamko.gradle.dev_publish.utils.*
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -22,6 +22,7 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
@@ -64,7 +65,6 @@ class DevPublishPlugin @Inject constructor(
     devPubTasks.updateDevRepo.configure {
       // update this project's maven-test-repo with files from other subprojects
       repositoryContents.from(devPubConfigurations.testMavenPublicationResolver)
-//      repositoryContents.from(devPubConfigurations.resolvedDevRepos1())
     }
 
     devPubConfigurations.testMavenPublicationApiElements.outgoing {
@@ -108,7 +108,7 @@ class DevPublishPlugin @Inject constructor(
       maxParallelUsages.set(1)
     }
 
-  /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks */
+  /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks. */
   private fun configureMavenPublishingPlugin(
     project: Project,
     devPubExtension: DevPublishPluginExtension,
@@ -152,39 +152,57 @@ class DevPublishPlugin @Inject constructor(
       // Gradle won't accept directories that don't exist as inputs.
       .files(checksumsStore.asFileTree.sortedElements())
       .withPropertyName("devPubChecksumsStoreFiles")
+      .withPathSensitivity(RELATIVE)
 
     outputs
       .files(publicationStore.map { it.asFileTree.sortedElements() })
       .withPropertyName("devPubPublicationStore")
 
-    val publicationData = devPubService.flatMap { service ->
-      providers.provider { service.createPublicationData(publication) }
-    }
-    val currentChecksum: Provider<String> = publicationData.map { data ->
-      data.createChecksumContent()
-    }
+//    val publicationData = devPubService.flatMap { service ->
+//      providers.provider { service.createPublicationData(publication) }
+//    }
 
-    val storedChecksum: Provider<String> = providers.zip(
-      publicationData,
-      checksumsStore,
-    ) { data, checksumStore ->
-      checksumStore.asFile
-        .resolve(data?.checksumFilename ?: "unknown")
-        .takeIf(File::exists)
-        ?.readText()
-    }
+//    val currentChecksum: Provider<String> =
+//      publicationData.flatMap { it.createChecksumContent() }
 
-    onlyIf("current checksums don't match stored checksum") {
-      if (!repoIsDevPub.get()) return@onlyIf true
+    val currentProjectDir = layout.projectDirectory
 
-      if (logger.isInfoEnabled) {
-        logger.info(checksumsToDebugString(currentChecksum, storedChecksum))
+    val publicationName = providers.provider { publication.name }
+    val publicationArtifacts = providers.provider { publication.artifacts }
+      .map { artifacts ->
+        objects.fileCollection()
+          .from(artifacts.map { it.file })
+          .builtBy(artifacts)
       }
+    val publicationIdentifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
 
-      currentChecksum.orNull != storedChecksum.orNull
+    val currentChecksum = providers.createPublicationChecksum {
+      this.projectDir.set(currentProjectDir)
+      this.artifacts.from(publicationArtifacts)
+      this.identifier.set(publicationIdentifier)
     }
 
-    doFirst("clear staging repo") {
+    val storedChecksum = providers.loadPublicationChecksum {
+//      parameters.checksumFilename.set(publicationData.map { it.checksumFilename })
+      this.checksumFilename.set(publicationName.map { "$it.txt" })
+      this.checksumsStore.set(checksumsStore)
+    }
+
+    onlyIf_("current checksums don't match stored checksum") {
+      if (!repoIsDevPub.get()) {
+        true
+      } else {
+        val enabled = currentChecksum.orNull != storedChecksum.orNull
+        logger.info {
+          val checksums = checksumsToDebugString(currentChecksum, storedChecksum).prependIndent("  ")
+          val match = if (!enabled) "match" else "do not match"
+          "[$path] currentChecksum and storedChecksum $match\n${checksums}"
+        }
+        enabled
+      }
+    }
+
+    doFirst_("clear staging repo") {
       if (repoIsDevPub.get()) {
         // clear the staging repo so that we can only sync this publication's files in the doLast {} below
         fs.delete { delete(stagingDevMavenRepo) }
@@ -192,9 +210,9 @@ class DevPublishPlugin @Inject constructor(
       }
     }
 
-    doLast("sync staging repo to publication store") {
+    doLast_("sync staging repo to publication store") {
       if (repoIsDevPub.get()) {
-        logger.info("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}")
+        logger.info { ("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}") }
         fs.sync {
           from(stagingDevMavenRepo)
           into(publicationStore)
