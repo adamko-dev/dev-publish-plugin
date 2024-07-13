@@ -44,22 +44,22 @@ class DevPubConfigurationsContainer(
       declarable()
     }
 
-  val testMavenPublicationResolver: Configuration =
+  val devMavenPublicationResolver: Configuration =
     configurations.create(DEV_PUB__PUBLICATION_INCOMING) {
-      description = "Resolve test Maven Publications."
+      description = "Resolve dev Maven Publications."
       resolvable()
+      extendsFrom(devPublicationApiDependencies)
+      extendsFrom(devPublicationDependencies)
       attributes {
         attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
         attribute(CATEGORY_ATTRIBUTE, devPubAttributes.devPublishCategory)
         attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
       }
-      extendsFrom(devPublicationApiDependencies)
-      extendsFrom(devPublicationDependencies)
     }
 
-  val testMavenPublicationApiElements: Configuration =
+  val devMavenPublicationApiElements: Configuration =
     configurations.create(DEV_PUB__PUBLICATION_OUTGOING) {
-      description = "Provide test Maven Publications."
+      description = "Provide dev Maven Publications."
       consumable()
       attributes {
         attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)

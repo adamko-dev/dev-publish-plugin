@@ -70,10 +70,10 @@ constructor(
 
     devPubTasks.updateDevRepo.configure {
       // update this project's maven-test-repo with files from other subprojects
-      repositoryContents.from(devPubConfigurations.testMavenPublicationResolver)
+      repositoryContents.from(devPubConfigurations.devMavenPublicationResolver)
     }
 
-    devPubConfigurations.testMavenPublicationApiElements.outgoing {
+    devPubConfigurations.devMavenPublicationApiElements.outgoing {
       // Only share repos from _this_ subproject, not from the aggregated repo
       artifact(devPubExtension.publicationsStore) {
         builtBy(devPubTasks.publishAllToDevRepo)
