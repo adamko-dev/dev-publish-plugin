@@ -22,7 +22,7 @@ constructor(
 ) : BaseDevPublishTask() {
 
   /**
-   * Input repo
+   * Input repo.
    *
    * @see dev.adamko.gradle.dev_publish.DevPublishPluginExtension.stagingDevMavenRepo
    */
@@ -77,7 +77,11 @@ constructor(
           relativePath = relativePath.dropDirectory()
         }
       }
-      from(repositoryContents)
+      from(repositoryContents) {
+        eachFile {
+          relativePath = relativePath.dropDirectory()
+        }
+      }
 
       into(devRepo)
 

@@ -180,78 +180,77 @@ class ApiPropagationTest : FunSpec({
     @Language("TEXT")
     private val ExpectedDevRepoTree = """
       maven-dev/
-      └── publishMavenJavaPublicationToDevPublishMavenRepository/
-          └── project/
-              └── kotlin/
-                  ├── app/
-                  │   └── project-kotlin-app/
-                  │       ├── 9.9.9/
-                  │       │   ├── project-kotlin-app-9.9.9.jar
-                  │       │   ├── project-kotlin-app-9.9.9.jar.md5
-                  │       │   ├── project-kotlin-app-9.9.9.jar.sha1
-                  │       │   ├── project-kotlin-app-9.9.9.jar.sha256
-                  │       │   ├── project-kotlin-app-9.9.9.jar.sha512
-                  │       │   ├── project-kotlin-app-9.9.9.module
-                  │       │   ├── project-kotlin-app-9.9.9.module.md5
-                  │       │   ├── project-kotlin-app-9.9.9.module.sha1
-                  │       │   ├── project-kotlin-app-9.9.9.module.sha256
-                  │       │   ├── project-kotlin-app-9.9.9.module.sha512
-                  │       │   ├── project-kotlin-app-9.9.9.pom
-                  │       │   ├── project-kotlin-app-9.9.9.pom.md5
-                  │       │   ├── project-kotlin-app-9.9.9.pom.sha1
-                  │       │   ├── project-kotlin-app-9.9.9.pom.sha256
-                  │       │   └── project-kotlin-app-9.9.9.pom.sha512
-                  │       ├── maven-metadata.xml
-                  │       ├── maven-metadata.xml.md5
-                  │       ├── maven-metadata.xml.sha1
-                  │       ├── maven-metadata.xml.sha256
-                  │       └── maven-metadata.xml.sha512
-                  ├── lib1/
-                  │   └── project-kotlin-lib1/
-                  │       ├── 1.2.3/
-                  │       │   ├── project-kotlin-lib1-1.2.3.jar
-                  │       │   ├── project-kotlin-lib1-1.2.3.jar.md5
-                  │       │   ├── project-kotlin-lib1-1.2.3.jar.sha1
-                  │       │   ├── project-kotlin-lib1-1.2.3.jar.sha256
-                  │       │   ├── project-kotlin-lib1-1.2.3.jar.sha512
-                  │       │   ├── project-kotlin-lib1-1.2.3.module
-                  │       │   ├── project-kotlin-lib1-1.2.3.module.md5
-                  │       │   ├── project-kotlin-lib1-1.2.3.module.sha1
-                  │       │   ├── project-kotlin-lib1-1.2.3.module.sha256
-                  │       │   ├── project-kotlin-lib1-1.2.3.module.sha512
-                  │       │   ├── project-kotlin-lib1-1.2.3.pom
-                  │       │   ├── project-kotlin-lib1-1.2.3.pom.md5
-                  │       │   ├── project-kotlin-lib1-1.2.3.pom.sha1
-                  │       │   ├── project-kotlin-lib1-1.2.3.pom.sha256
-                  │       │   └── project-kotlin-lib1-1.2.3.pom.sha512
-                  │       ├── maven-metadata.xml
-                  │       ├── maven-metadata.xml.md5
-                  │       ├── maven-metadata.xml.sha1
-                  │       ├── maven-metadata.xml.sha256
-                  │       └── maven-metadata.xml.sha512
-                  └── lib2/
-                      └── project-kotlin-lib2/
-                          ├── 9.0.1/
-                          │   ├── project-kotlin-lib2-9.0.1.jar
-                          │   ├── project-kotlin-lib2-9.0.1.jar.md5
-                          │   ├── project-kotlin-lib2-9.0.1.jar.sha1
-                          │   ├── project-kotlin-lib2-9.0.1.jar.sha256
-                          │   ├── project-kotlin-lib2-9.0.1.jar.sha512
-                          │   ├── project-kotlin-lib2-9.0.1.module
-                          │   ├── project-kotlin-lib2-9.0.1.module.md5
-                          │   ├── project-kotlin-lib2-9.0.1.module.sha1
-                          │   ├── project-kotlin-lib2-9.0.1.module.sha256
-                          │   ├── project-kotlin-lib2-9.0.1.module.sha512
-                          │   ├── project-kotlin-lib2-9.0.1.pom
-                          │   ├── project-kotlin-lib2-9.0.1.pom.md5
-                          │   ├── project-kotlin-lib2-9.0.1.pom.sha1
-                          │   ├── project-kotlin-lib2-9.0.1.pom.sha256
-                          │   └── project-kotlin-lib2-9.0.1.pom.sha512
-                          ├── maven-metadata.xml
-                          ├── maven-metadata.xml.md5
-                          ├── maven-metadata.xml.sha1
-                          ├── maven-metadata.xml.sha256
-                          └── maven-metadata.xml.sha512
+      └── project/
+          └── kotlin/
+              ├── app/
+              │   └── project-kotlin-app/
+              │       ├── 9.9.9/
+              │       │   ├── project-kotlin-app-9.9.9.jar
+              │       │   ├── project-kotlin-app-9.9.9.jar.md5
+              │       │   ├── project-kotlin-app-9.9.9.jar.sha1
+              │       │   ├── project-kotlin-app-9.9.9.jar.sha256
+              │       │   ├── project-kotlin-app-9.9.9.jar.sha512
+              │       │   ├── project-kotlin-app-9.9.9.module
+              │       │   ├── project-kotlin-app-9.9.9.module.md5
+              │       │   ├── project-kotlin-app-9.9.9.module.sha1
+              │       │   ├── project-kotlin-app-9.9.9.module.sha256
+              │       │   ├── project-kotlin-app-9.9.9.module.sha512
+              │       │   ├── project-kotlin-app-9.9.9.pom
+              │       │   ├── project-kotlin-app-9.9.9.pom.md5
+              │       │   ├── project-kotlin-app-9.9.9.pom.sha1
+              │       │   ├── project-kotlin-app-9.9.9.pom.sha256
+              │       │   └── project-kotlin-app-9.9.9.pom.sha512
+              │       ├── maven-metadata.xml
+              │       ├── maven-metadata.xml.md5
+              │       ├── maven-metadata.xml.sha1
+              │       ├── maven-metadata.xml.sha256
+              │       └── maven-metadata.xml.sha512
+              ├── lib1/
+              │   └── project-kotlin-lib1/
+              │       ├── 1.2.3/
+              │       │   ├── project-kotlin-lib1-1.2.3.jar
+              │       │   ├── project-kotlin-lib1-1.2.3.jar.md5
+              │       │   ├── project-kotlin-lib1-1.2.3.jar.sha1
+              │       │   ├── project-kotlin-lib1-1.2.3.jar.sha256
+              │       │   ├── project-kotlin-lib1-1.2.3.jar.sha512
+              │       │   ├── project-kotlin-lib1-1.2.3.module
+              │       │   ├── project-kotlin-lib1-1.2.3.module.md5
+              │       │   ├── project-kotlin-lib1-1.2.3.module.sha1
+              │       │   ├── project-kotlin-lib1-1.2.3.module.sha256
+              │       │   ├── project-kotlin-lib1-1.2.3.module.sha512
+              │       │   ├── project-kotlin-lib1-1.2.3.pom
+              │       │   ├── project-kotlin-lib1-1.2.3.pom.md5
+              │       │   ├── project-kotlin-lib1-1.2.3.pom.sha1
+              │       │   ├── project-kotlin-lib1-1.2.3.pom.sha256
+              │       │   └── project-kotlin-lib1-1.2.3.pom.sha512
+              │       ├── maven-metadata.xml
+              │       ├── maven-metadata.xml.md5
+              │       ├── maven-metadata.xml.sha1
+              │       ├── maven-metadata.xml.sha256
+              │       └── maven-metadata.xml.sha512
+              └── lib2/
+                  └── project-kotlin-lib2/
+                      ├── 9.0.1/
+                      │   ├── project-kotlin-lib2-9.0.1.jar
+                      │   ├── project-kotlin-lib2-9.0.1.jar.md5
+                      │   ├── project-kotlin-lib2-9.0.1.jar.sha1
+                      │   ├── project-kotlin-lib2-9.0.1.jar.sha256
+                      │   ├── project-kotlin-lib2-9.0.1.jar.sha512
+                      │   ├── project-kotlin-lib2-9.0.1.module
+                      │   ├── project-kotlin-lib2-9.0.1.module.md5
+                      │   ├── project-kotlin-lib2-9.0.1.module.sha1
+                      │   ├── project-kotlin-lib2-9.0.1.module.sha256
+                      │   ├── project-kotlin-lib2-9.0.1.module.sha512
+                      │   ├── project-kotlin-lib2-9.0.1.pom
+                      │   ├── project-kotlin-lib2-9.0.1.pom.md5
+                      │   ├── project-kotlin-lib2-9.0.1.pom.sha1
+                      │   ├── project-kotlin-lib2-9.0.1.pom.sha256
+                      │   └── project-kotlin-lib2-9.0.1.pom.sha512
+                      ├── maven-metadata.xml
+                      ├── maven-metadata.xml.md5
+                      ├── maven-metadata.xml.sha1
+                      ├── maven-metadata.xml.sha256
+                      └── maven-metadata.xml.sha512
       """.trimIndent()
   }
 }
