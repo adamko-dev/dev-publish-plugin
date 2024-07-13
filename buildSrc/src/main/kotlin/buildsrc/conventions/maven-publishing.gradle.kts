@@ -46,8 +46,10 @@ publishing {
 //region GitHub branch publishing
 publishing {
   repositories {
-    maven(mavenPublishing.githubPublishDir) {
-      name = "GitHubPublish"
+    mavenPublishing.githubPublishDir.orNull?.let { githubPublishDir ->
+      maven(githubPublishDir) {
+        name = "GitHubPublish"
+      }
     }
   }
 }
@@ -148,20 +150,4 @@ tasks.withType<AbstractPublishToMaven>().configureEach {
     }
   }
 }
-//endregion
-
-
-//region IJ workarounds
-// manually define the Kotlin DSL accessors because IntelliJ _still_ doesn't load them properly
-fun Project.publishing(configure: PublishingExtension.() -> Unit): Unit =
-  extensions.configure(configure)
-
-val Project.publishing: PublishingExtension
-  get() = extensions.getByType()
-
-fun Project.signing(configure: SigningExtension.() -> Unit): Unit =
-  extensions.configure(configure)
-
-val Project.signing: SigningExtension
-  get() = extensions.getByType()
 //endregion
