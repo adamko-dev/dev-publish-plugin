@@ -20,7 +20,7 @@ class ApiPropagationTest : FunSpec({
           "--stacktrace",
         )
         .build {
-          output.shouldContain("SUCCESSFUL")
+          output shouldContain "SUCCESSFUL"
         }
     }
 
@@ -32,7 +32,7 @@ class ApiPropagationTest : FunSpec({
         "--build-cache",
       ).build {
         withClue(output) {
-          output.shouldContain("SUCCESSFUL")
+          output shouldContain "SUCCESSFUL"
 
           val mavenDevDir = project.projectDir.resolve("project-aggregate/build/maven-dev")
 

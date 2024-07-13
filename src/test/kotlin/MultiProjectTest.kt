@@ -20,7 +20,7 @@ class MultiProjectTest : FunSpec({
           "--stacktrace",
         )
         .build {
-          output.shouldContain("SUCCESSFUL")
+          output shouldContain "SUCCESSFUL"
         }
     }
 
@@ -31,7 +31,7 @@ class MultiProjectTest : FunSpec({
         "--configuration-cache",
         "--build-cache",
       ).build {
-        output.shouldContain("SUCCESSFUL")
+        output shouldContain "SUCCESSFUL"
 
         val mavenDevDir = project.projectDir.resolve("project-aggregate-some/build/maven-dev")
 
@@ -50,7 +50,7 @@ class MultiProjectTest : FunSpec({
           "--stacktrace",
         )
         .build {
-          output.shouldContain("SUCCESSFUL")
+          output shouldContain "SUCCESSFUL"
         }
     }
 
@@ -63,7 +63,7 @@ class MultiProjectTest : FunSpec({
         "--build-cache",
       ).build {
         withClue(output) {
-          output.shouldContain("SUCCESSFUL")
+          output shouldContain "SUCCESSFUL"
 
           val mavenDevDir = project.projectDir.resolve("project-aggregate-all/build/maven-dev")
 
