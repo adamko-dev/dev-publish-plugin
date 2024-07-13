@@ -12,20 +12,22 @@ import org.gradle.kotlin.dsl.register
 @DevPublishInternalApi
 class DevPublishTasksContainer(
   tasks: TaskContainer,
-  devPubExtension: DevPublishPluginExtension,
+  private val devPubExtension: DevPublishPluginExtension,
   private val objects: ObjectFactory,
 ) {
 
+  /** Lifecycle task for publishing dev repos to the current subproject's dev repo. */
   val publishAllToDevRepo: TaskProvider<BaseDevPublishTask> =
-    tasks.registerPublishAllToDevRepoTask(devPubExtension)
-  val generatePublicationChecksum: TaskProvider<GeneratePublicationDataChecksumTask> =
-    tasks.registerGeneratePublicationChecksumTask(devPubExtension)
-  val updateDevRepo: TaskProvider<UpdateDevRepoTask> =
-    tasks.registerUpdateDevRepoTask(devPubExtension)
+    tasks.registerPublishAllToDevRepoTask()
 
-  private fun TaskContainer.registerPublishAllToDevRepoTask(
-    devPubExtension: DevPublishPluginExtension,
-  ): TaskProvider<BaseDevPublishTask> =
+  /** Lifecycle task for publishing dev repos to the current subproject's dev repo. */
+  val generatePublicationChecksum: TaskProvider<GeneratePublicationDataChecksumTask> =
+    tasks.registerGeneratePublicationChecksumTask()
+
+  val updateDevRepo: TaskProvider<UpdateDevRepoTask> =
+    tasks.registerUpdateDevRepoTask()
+
+  private fun TaskContainer.registerPublishAllToDevRepoTask(): TaskProvider<BaseDevPublishTask> =
     register<BaseDevPublishTask>(PUBLISH_ALL_TO_DEV_REPO_TASK_NAME) {
       description = "Publishes all Maven publications to the dev Maven repository. " +
           "This is an internal task that should not typically be manually referenced or called."
@@ -40,9 +42,7 @@ class DevPublishTasksContainer(
       )
     }
 
-  private fun TaskContainer.registerGeneratePublicationChecksumTask(
-    devPubExtension: DevPublishPluginExtension,
-  ): TaskProvider<GeneratePublicationDataChecksumTask> =
+  private fun TaskContainer.registerGeneratePublicationChecksumTask(): TaskProvider<GeneratePublicationDataChecksumTask> =
     register<GeneratePublicationDataChecksumTask>(GENERATE_PUBLICATION_CHECKSUM_TASK) {
       description = "Generates a checksum from a publication, used for up-to-date checks. " +
           "This is an internal task that should not typically be manually referenced or called."
@@ -50,9 +50,7 @@ class DevPublishTasksContainer(
       tempDir.convention(objects.directoryProperty().fileValue(temporaryDir))
     }
 
-  private fun TaskContainer.registerUpdateDevRepoTask(
-    devPubExtension: DevPublishPluginExtension,
-  ): TaskProvider<UpdateDevRepoTask> =
+  private fun TaskContainer.registerUpdateDevRepoTask(): TaskProvider<UpdateDevRepoTask> =
     register<UpdateDevRepoTask>(UPDATE_DEV_REPO_TASK_NAME) {
       description = "Updates the dev-repo"
       publicationsStore.set(devPubExtension.publicationsStore)

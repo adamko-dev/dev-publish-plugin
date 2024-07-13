@@ -14,10 +14,9 @@ project.group = "dev.adamko.gradle"
 
 dependencies {
   testFixturesApi(gradleTestKit())
-
-  testImplementation(platform(libs.kotest.bom))
-  testImplementation(libs.kotest.runnerJUnit5)
-  testImplementation(libs.kotest.assertionsCore)
+  testFixturesApi(platform(libs.kotest.bom))
+  testFixturesApi(libs.kotest.runnerJUnit5)
+  testFixturesApi(libs.kotest.assertionsCore)
 }
 
 

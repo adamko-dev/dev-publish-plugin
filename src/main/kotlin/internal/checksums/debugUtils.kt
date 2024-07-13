@@ -1,10 +1,11 @@
-package dev.adamko.gradle.dev_publish.utils
+package dev.adamko.gradle.dev_publish.internal.checksums
 
+import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.FileChecksumSeparator
 import dev.adamko.gradle.dev_publish.utils.StringTableBuilder.Companion.buildTable
+import dev.adamko.gradle.dev_publish.utils.splitToPair
 import kotlin.math.max
 import org.gradle.api.provider.Provider
 
-internal const val FileChecksumSeparator = ":"
 
 /** Debug string of the [currentChecksum] and [storedChecksum] side-by-side */
 internal fun checksumsToDebugString(

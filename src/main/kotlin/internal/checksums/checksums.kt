@@ -1,4 +1,4 @@
-package dev.adamko.gradle.dev_publish.utils
+package dev.adamko.gradle.dev_publish.internal.checksums
 
 import java.io.File
 import java.io.InputStream

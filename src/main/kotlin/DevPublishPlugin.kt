@@ -2,17 +2,21 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
+import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
+import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
+import dev.adamko.gradle.dev_publish.internal.checksums.LoadPublicationChecksum.Companion.loadPublicationChecksum
+import dev.adamko.gradle.dev_publish.internal.checksums.checksumsToDebugString
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
-import dev.adamko.gradle.dev_publish.utils.checksumsToDebugString
-import java.io.File
+import dev.adamko.gradle.dev_publish.utils.*
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
@@ -22,6 +26,7 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
@@ -66,16 +71,13 @@ constructor(
 
     devPubTasks.updateDevRepo.configure {
       // update this project's maven-test-repo with files from other subprojects
-      from(devPubConfigurations.testMavenPublicationConsumer.map { conf ->
-        conf.incoming.artifacts.artifactFiles
-      })
+      repositoryContents.from(devPubConfigurations.devMavenPublicationResolver)
     }
 
-    devPubConfigurations.testMavenPublicationProvider.configure {
-      outgoing {
-        artifact(devPubExtension.devMavenRepo) {
-          builtBy(devPubTasks.updateDevRepo)
-        }
+    devPubConfigurations.devMavenPublicationApiElements.outgoing {
+      // Only share repos from _this_ subproject, not from the aggregated repo
+      artifact(devPubExtension.publicationsStore) {
+        builtBy(devPubTasks.publishAllToDevRepo)
       }
     }
 
@@ -83,7 +85,6 @@ constructor(
       project = project,
       devPubExtension = devPubExtension,
       devPubTasks = devPubTasks,
-      devPublishService = devPubService,
     )
 
     configureBasePlugin(
@@ -108,21 +109,16 @@ constructor(
     }
   }
 
-  private fun BuildServiceRegistry.registerDevPubService(): Provider<DevPublishService> {
-    return registerIfAbsent(
-      SERVICE_NAME,
-      DevPublishService::class
-    ) {
+  private fun BuildServiceRegistry.registerDevPubService(): Provider<DevPublishService> =
+    registerIfAbsent(SERVICE_NAME, DevPublishService::class) {
       maxParallelUsages.set(1)
     }
-  }
 
-  /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks */
+  /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks. */
   private fun configureMavenPublishingPlugin(
     project: Project,
     devPubExtension: DevPublishPluginExtension,
     devPubTasks: DevPublishTasksContainer,
-    devPublishService: Provider<DevPublishService>,
   ) {
     project.plugins.withType<MavenPublishPlugin>().configureEach {
       project.extensions.configure<PublishingExtension> {
@@ -131,10 +127,10 @@ constructor(
         }
 
         devPubTasks.generatePublicationChecksum.configure {
-          publicationData.addAllLater(devPublishService.map { service ->
+          publicationData.addAllLater(providers.provider {
             publications
               .withType<MavenPublication>()
-              .mapNotNull { service.createPublicationData(it) }
+              .mapNotNull { createPublicationData(it) }
           })
         }
       }
@@ -157,43 +153,46 @@ constructor(
     inputs.property("repoIsDevPub", repoIsDevPub)
 
     inputs
-      // must convert to FileTree, because the directory might not exist, and
+      // Must convert to FileTree, because the directory might not exist, and
       // Gradle won't accept directories that don't exist as inputs.
-      .files(checksumsStore.asFileTree)
+      .files(checksumsStore.asFileTree.sortedElements())
       .withPropertyName("devPubChecksumsStoreFiles")
+      .withPathSensitivity(RELATIVE)
 
     outputs
-      .files(publicationStore.map { it.asFileTree })
+      .files(publicationStore.map { it.asFileTree.sortedElements() })
       .withPropertyName("devPubPublicationStore")
 
-    val publicationData = devPubService.flatMap { service ->
-      providers.provider { service.createPublicationData(publication) }
-    }
-    val currentChecksum: Provider<String> = publicationData.map { data ->
-      data.createChecksumContent()
-    }
+    val currentProjectDir = layout.projectDirectory
 
-    val storedChecksum: Provider<String> = providers.zip(
-      publicationData,
-      checksumsStore,
-    ) { data, checksumStore ->
-      checksumStore.asFile
-        .resolve(data?.checksumFilename ?: "unknown")
-        .takeIf(File::exists)
-        ?.readText()
+    val publicationData = providers.provider { createPublicationData(publication) }
+
+    val currentChecksum = providers.createPublicationChecksum {
+      this.projectDir.set(currentProjectDir)
+      this.artifacts.from(publicationData.map { it.artifacts })
+      this.identifier.set(publicationData.flatMap { it.identifier })
     }
 
-    onlyIf("current checksums don't match stored checksum") {
-      if (!repoIsDevPub.get()) return@onlyIf true
+    val storedChecksum = providers.loadPublicationChecksum {
+      this.checksumFilename.set(publicationData.map { "${it.name}.txt" })
+      this.checksumsStore.set(checksumsStore)
+    }
 
-      if (logger.isInfoEnabled) {
-        logger.info(checksumsToDebugString(currentChecksum, storedChecksum))
+    onlyIf_("current checksums don't match stored checksum") {
+      if (!repoIsDevPub.get()) {
+        true
+      } else {
+        val enabled = currentChecksum.orNull != storedChecksum.orNull
+        logger.info {
+          val checksums = checksumsToDebugString(currentChecksum, storedChecksum).prependIndent("  ")
+          val match = if (!enabled) "match" else "do not match"
+          "[$path] currentChecksum and storedChecksum $match\n${checksums}"
+        }
+        enabled
       }
-
-      currentChecksum.orNull != storedChecksum.orNull
     }
 
-    doFirst("clear staging repo") {
+    doFirst_("clear staging repo") {
       if (repoIsDevPub.get()) {
         // clear the staging repo so that we can only sync this publication's files in the doLast {} below
         fs.delete { delete(stagingDevMavenRepo) }
@@ -201,9 +200,9 @@ constructor(
       }
     }
 
-    doLast("sync staging repo to publication store") {
+    doLast_("sync staging repo to publication store") {
       if (repoIsDevPub.get()) {
-        logger.info("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}")
+        logger.info { ("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}") }
         fs.sync {
           from(stagingDevMavenRepo)
           into(publicationStore)
@@ -231,6 +230,29 @@ constructor(
     }
   }
 
+  /** Create an instance of [PublicationData] from [publication]. */
+  private fun createPublicationData(
+    publication: MavenPublication?,
+  ): PublicationData? {
+    if (publication == null) {
+      logger.warn("cannot create PublicationData - MavenPublication is null")
+      return null
+    }
+
+    val artifacts = providers.provider { publication.artifacts }
+      .map { artifacts ->
+        objects.fileCollection()
+          .from(artifacts.map { it.file })
+          .builtBy(artifacts)
+      }
+    val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
+
+    return objects.newInstance<PublicationData>(publication.name).apply {
+      this.identifier.set(identifier)
+      this.artifacts.from(artifacts)
+    }
+  }
+
   companion object {
     const val DEV_PUB__EXTENSION_NAME = "devPublish"
 
@@ -243,7 +265,10 @@ constructor(
     const val DEV_PUB__MAVEN_REPO_DIR = "maven-dev"
 
     const val DEV_PUB__PUBLICATION_DEPENDENCIES = "devPublication"
+    const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
     const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
+
+    private val logger = Logging.getLogger(DevPublishService::class.java)
   }
 }

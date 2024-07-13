@@ -2,12 +2,16 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.dropDirectory
-import org.gradle.api.file.*
+import dev.adamko.gradle.dev_publish.utils.sortedElements
+import java.io.File
+import javax.inject.Inject
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import java.io.File
-import javax.inject.Inject
 
 @CacheableTask
 abstract class UpdateDevRepoTask
@@ -18,7 +22,7 @@ constructor(
 ) : BaseDevPublishTask() {
 
   /**
-   * Input repo
+   * Input repo.
    *
    * @see dev.adamko.gradle.dev_publish.DevPublishPluginExtension.stagingDevMavenRepo
    */
@@ -35,8 +39,8 @@ constructor(
   @get:InputFiles
   @get:PathSensitive(RELATIVE)
   @DevPublishInternalApi
-  protected val publicationsStoreFiles: FileCollection
-    get() = publicationsStore.asFileTree
+  protected val publicationsStoreFiles: Provider<out Collection<FileSystemLocation>>
+    get() = publicationsStore.asFileTree.sortedElements()
 
   /**
    * Additional files to include in [devRepo].
@@ -56,6 +60,10 @@ constructor(
   abstract val devRepo: DirectoryProperty
 
   /** @see repositoryContents */
+  @Deprecated(
+    "This helper function will be removed and can be replaced with adding files into `repositoryContents`",
+    ReplaceWith("repositoryContents.from(files)"),
+  )
   open fun from(files: Provider<Iterable<File>>) {
     repositoryContents.from(files)
   }
@@ -69,7 +77,11 @@ constructor(
           relativePath = relativePath.dropDirectory()
         }
       }
-      from(repositoryContents)
+      from(repositoryContents) {
+        eachFile {
+          relativePath = relativePath.dropDirectory()
+        }
+      }
 
       into(devRepo)
 

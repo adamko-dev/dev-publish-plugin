@@ -2,13 +2,11 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import org.intellij.lang.annotations.Subst
 import java.nio.file.Path
+import org.gradle.testkit.runner.TaskOutcome.*
+import org.intellij.lang.annotations.Subst
 
 class MultipleGradlePluginsTest : FunSpec({
 
@@ -19,48 +17,62 @@ class MultipleGradlePluginsTest : FunSpec({
       project.runner
         .withArguments("clean")
         .build {
-          output.shouldContain("SUCCESSFUL")
-          task(":clean")?.outcome.shouldBeOneOf(SUCCESS, UP_TO_DATE)
+          output shouldContain "SUCCESSFUL"
+          shouldHaveTaskWithAnyOutcome(":clean", SUCCESS, UP_TO_DATE)
         }
     }
 
-    test("first publish should succeed") {
+    context("first publish") {
       project.runner
         .withArguments(
           "updateDevRepo",
+//          "--info",
           "--stacktrace",
           "--configuration-cache",
           "--build-cache",
         )
         .forwardOutput()
         .build {
-          output.shouldContain("SUCCESSFUL")
+          test("should be successful") {
+            output shouldContain "SUCCESSFUL"
 
-          val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+            val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+            mavenDevDir.shouldBeMavenDevRepoWithPlugins(version = "1.2.3")
 
-          mavenDevDir.shouldBeMavenDevRepoWithPlugins(
-            version = "1.2.3"
-          )
+            // lifecycle task should run on the first attempt
+            shouldHaveTaskWithAnyOutcome(":publishAllToDevRepo", SUCCESS)
+          }
+
+          test("should run dev-publish tasks") {
+            shouldHaveTaskWithAnyOutcome(":generatePublicationHashTask", FROM_CACHE, SUCCESS)
+            shouldHaveTaskWithAnyOutcome(":updateDevRepo", FROM_CACHE, SUCCESS)
+          }
         }
     }
 
-    test("second publish should be skip tasks") {
+    context("second publish") {
       project.runner
         .withArguments(
           "updateDevRepo",
+//          "--info",
           "--stacktrace",
           "--configuration-cache",
           "--build-cache",
         )
         .forwardOutput()
         .build {
-          output.shouldContain("SUCCESSFUL")
+          test("should be successful") {
+            output shouldContain "SUCCESSFUL"
 
-          val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+            val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+            mavenDevDir.shouldBeMavenDevRepoWithPlugins(version = "1.2.3")
+          }
 
-          mavenDevDir.shouldBeMavenDevRepoWithPlugins(
-            version = "1.2.3"
-          )
+          test("should not re-run dev-publish tasks") {
+            shouldHaveTaskWithAnyOutcome(":publishAllToDevRepo", UP_TO_DATE)
+            shouldHaveTaskWithAnyOutcome(":generatePublicationHashTask", UP_TO_DATE)
+            shouldHaveTaskWithAnyOutcome(":updateDevRepo", UP_TO_DATE)
+          }
         }
     }
 
@@ -77,13 +89,11 @@ class MultipleGradlePluginsTest : FunSpec({
           )
           .forwardOutput()
           .build {
-            output.shouldContain("SUCCESSFUL")
+            output shouldContain "SUCCESSFUL"
 
             val mavenDevDir = project.projectDir.resolve("build/maven-dev")
 
-            mavenDevDir.shouldBeMavenDevRepoWithPlugins(
-              version = "4.5.6"
-            )
+            mavenDevDir.shouldBeMavenDevRepoWithPlugins(version = "4.5.6")
           }
       }
     }
@@ -95,14 +105,14 @@ class MultipleGradlePluginsTest : FunSpec({
         project.dir("src/main/kotlin") {
           createKotlinFile(
             "PluginAlpha.kt", """
-            import org.gradle.api.*   
-            
-            class PluginAlpha : Plugin<Project> {
-              override fun apply(project: Project) {
-                println("plugin-alpha UPDATED to trigger recompile")
+              import org.gradle.api.*   
+              
+              class PluginAlpha : Plugin<Project> {
+                override fun apply(project: Project) {
+                  println("plugin-alpha UPDATED to trigger recompile")
+                }
               }
-            }
-          """.trimIndent()
+            """.trimIndent()
           )
         }
 
@@ -116,7 +126,7 @@ class MultipleGradlePluginsTest : FunSpec({
             )
             .forwardOutput()
             .build {
-              output.shouldContain("SUCCESSFUL")
+              output shouldContain "SUCCESSFUL"
 
               val mavenDevDir = project.projectDir.resolve("build/maven-dev")
 

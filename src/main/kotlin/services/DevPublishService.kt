@@ -1,14 +1,9 @@
 package dev.adamko.gradle.dev_publish.services
 
-import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.publish.maven.MavenPublication
+import javax.inject.Inject
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.kotlin.dsl.newInstance
-import javax.inject.Inject
 
 
 /**
@@ -19,34 +14,15 @@ import javax.inject.Inject
  * files to be accurately captured and synced to the maven-dev repository.
  */
 @DevPublishInternalApi
-abstract class DevPublishService @Inject constructor(
-  private val providers: ProviderFactory,
-  private val objects: ObjectFactory,
-) : BuildService<DevPublishService.Parameters> {
+abstract class DevPublishService
+@Inject
+constructor() : BuildService<DevPublishService.Parameters> {
 
   @DevPublishInternalApi
   interface Parameters : BuildServiceParameters
 
-  /** Create an instance of [PublicationData] from [publication]. */
-  fun createPublicationData(
-    publication: MavenPublication?
-  ): PublicationData? {
-    if (publication == null) return null
-
-    return objects.newInstance<PublicationData>(publication.name).apply {
-      identifier.set(
-        providers.provider {
-          "${publication.groupId}:${publication.artifactId}:${publication.version}"
-        }
-      )
-      artifacts.from(providers.provider {
-        publication.artifacts.map { it.file }
-      })
-    }
-  }
-
   @DevPublishInternalApi
   companion object {
-    const val SERVICE_NAME = "DevPublishManifest"
+    const val SERVICE_NAME = "DevPublishService"
   }
 }
