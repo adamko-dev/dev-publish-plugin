@@ -1,5 +1,6 @@
 package dev.adamko.gradle.dev_publish.data
 
+import dev.adamko.gradle.dev_publish.utils.FileChecksumSeparator
 import dev.adamko.gradle.dev_publish.utils.checksum
 import javax.inject.Inject
 import org.gradle.api.Named
@@ -48,7 +49,7 @@ abstract class PublicationData @Inject constructor(
 
   internal fun createChecksumContent(): String {
     val md5 = artifacts
-      .map { "${it.invariantSeparatorsPath}=${it.checksum()}" }
+      .map { "${it.invariantSeparatorsPath}${FileChecksumSeparator}${it.checksum()}" }
       .sorted()
       .joinToString("\n")
 
