@@ -7,11 +7,10 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.register
-import javax.inject.Inject
 
 /** Container for all [dev.adamko.gradle.dev_publish.DevPublishPlugin] tasks. */
 @DevPublishInternalApi
-abstract class DevPublishTasksContainer @Inject constructor(
+class DevPublishTasksContainer(
   tasks: TaskContainer,
   devPubExtension: DevPublishPluginExtension,
   private val objects: ObjectFactory,
