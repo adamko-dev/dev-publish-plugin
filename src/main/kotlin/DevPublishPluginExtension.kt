@@ -6,7 +6,8 @@ import org.gradle.api.file.DirectoryProperty
 /**
  * Settings for controlling the behaviour of [DevPublishPlugin] and its tasks.
  */
-abstract class DevPublishPluginExtension {
+abstract class DevPublishPluginExtension
+@DevPublishInternalApi constructor() {
 
   /**
    * Location of the file-based test Maven repository.

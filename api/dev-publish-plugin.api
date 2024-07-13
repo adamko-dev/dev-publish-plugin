@@ -7,7 +7,6 @@ public final class dev/adamko/gradle/dev_publish/DevPublishPlugin : org/gradle/a
 	public static final field DEV_PUB__PUBLICATION_DEPENDENCIES Ljava/lang/String;
 	public static final field DEV_PUB__PUBLICATION_INCOMING Ljava/lang/String;
 	public static final field DEV_PUB__PUBLICATION_OUTGOING Ljava/lang/String;
-	public fun <init> (Lorg/gradle/api/provider/ProviderFactory;Lorg/gradle/api/file/ProjectLayout;Lorg/gradle/api/file/FileSystemOperations;Lorg/gradle/api/model/ObjectFactory;)V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/Project;)V
 }
@@ -21,7 +20,6 @@ public final class dev/adamko/gradle/dev_publish/DevPublishPlugin$configureMaven
 }
 
 public abstract class dev/adamko/gradle/dev_publish/DevPublishPluginExtension {
-	public fun <init> ()V
 	public abstract fun getDevMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
 }
 

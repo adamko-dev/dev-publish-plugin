@@ -4,6 +4,7 @@ import dev.adamko.gradle.dev_publish.data.CreatePublicationChecksum.Companion.cr
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.data.LoadPublicationChecksum.Companion.loadPublicationChecksum
+import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
@@ -36,7 +37,10 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
  *
  * This is useful for testing, as Maven metadata and Plugin Marker artifact gets published correctly.
  */
-class DevPublishPlugin @Inject constructor(
+class DevPublishPlugin
+@Inject
+@DevPublishInternalApi
+constructor(
   private val providers: ProviderFactory,
   private val layout: ProjectLayout,
   private val fs: FileSystemOperations,
