@@ -1,7 +1,8 @@
-package dev.adamko.gradle.dev_publish.utils
+package dev.adamko.gradle.dev_publish.internal.checksums
 
-import dev.adamko.gradle.dev_publish.data.CreatePublicationChecksum.Companion.FileChecksumSeparator
+import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.FileChecksumSeparator
 import dev.adamko.gradle.dev_publish.utils.StringTableBuilder.Companion.buildTable
+import dev.adamko.gradle.dev_publish.utils.splitToPair
 import kotlin.math.max
 import org.gradle.api.provider.Provider
 

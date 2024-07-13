@@ -1,6 +1,6 @@
 package dev.adamko.gradle.dev_publish.tasks
 
-import dev.adamko.gradle.dev_publish.data.CreatePublicationChecksum.Companion.createPublicationChecksum
+import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.info
