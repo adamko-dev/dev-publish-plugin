@@ -16,6 +16,7 @@ import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.model.ObjectFactory
 import org.gradle.kotlin.dsl.newInstance
 import javax.inject.Inject
+import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 
 /**
  * Utility class that contains all [Configuration]s used by [dev.adamko.gradle.dev_publish.DevPublishPlugin].
@@ -50,6 +51,7 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
       resolvable()
       attributes {
         attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
+        attribute(CATEGORY_ATTRIBUTE, devPubAttributes.devPublishCategory)
         attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
       }
       extendsFrom(testMavenPublicationDependencies.get())
@@ -61,6 +63,7 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
       consumable()
       attributes {
         attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
+        attribute(CATEGORY_ATTRIBUTE, devPubAttributes.devPublishCategory)
         attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
       }
       extendsFrom(testMavenPublicationDependencies.get())
