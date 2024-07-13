@@ -1,13 +1,16 @@
 package dev.adamko.gradle.dev_publish.data
 
-import dev.adamko.gradle.dev_publish.utils.md5
+import dev.adamko.gradle.dev_publish.utils.checksum
+import javax.inject.Inject
 import org.gradle.api.Named
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import javax.inject.Inject
 
 /**
  * Specific information about a [MavenPublication] that will be used to create a checksum file.
@@ -41,11 +44,11 @@ abstract class PublicationData @Inject constructor(
   override fun getName(): String = named
 
   @get:Internal
-  internal val checksumFilename = "$named.md5"
+  internal val checksumFilename = "$named.txt"
 
   internal fun createChecksumContent(): String {
     val md5 = artifacts
-      .map { "${it.invariantSeparatorsPath}=${it.md5()}" }
+      .map { "${it.invariantSeparatorsPath}=${it.checksum()}" }
       .sorted()
       .joinToString("\n")
 
