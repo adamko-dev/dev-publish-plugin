@@ -66,6 +66,8 @@ tasks.withType<Test>().configureEach {
   dependsOn("publishAllPublicationsToTestMavenRepoRepository")
   systemProperty("testMavenRepoDir", testMavenRepoDir.get().asFile.invariantSeparatorsPath)
   systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
+  // Remove Kotest autoscan.disable when Kotest version >= 6.0
+  systemProperty("kotest.framework.classpath.scanning.autoscan.disable", true)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
