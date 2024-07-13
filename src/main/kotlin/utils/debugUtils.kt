@@ -1,19 +1,21 @@
 package dev.adamko.gradle.dev_publish.utils
 
-import org.gradle.api.provider.Provider
+import dev.adamko.gradle.dev_publish.utils.StringTableBuilder.Companion.buildTable
 import kotlin.math.max
+import org.gradle.api.provider.Provider
 
+internal const val FileChecksumSeparator = ":"
 
 /** Debug string of the [currentChecksum] and [storedChecksum] side-by-side */
 internal fun checksumsToDebugString(
   currentChecksum: Provider<String>,
   storedChecksum: Provider<String>,
 ): String {
-  fun Provider<String>.fileChecksumsMap() =
+  fun Provider<String>.fileChecksumsMap(): Map<String, List<String>> =
     getOrElse("")
       .lines()
-      .filter { "=" in it }
-      .map { it.splitToPair("=") }
+      .filter { FileChecksumSeparator in it }
+      .map { it.splitToPair(FileChecksumSeparator) }
       .groupBy({ it.first }, { it.second })
 
   val currentFileChecksums = currentChecksum.fileChecksumsMap()
@@ -25,19 +27,26 @@ internal fun checksumsToDebugString(
     val currentChecksums = currentFileChecksums[file] ?: emptyList()
     val storedChecksums = storedFileChecksums[file] ?: emptyList()
 
-    fun List<String>.getChecksum(i: Int) =
-      getOrElse(i) { "<missing>" }.trim().padStart(40, ' ')
+    fun List<String>.getChecksum(i: Int): String =
+      getOrElse(i) { "<missing>" }.trim()
 
-    val joinedChecksums = (0 until max(currentChecksums.size, storedChecksums.size))
-      .joinToString("\n") { i ->
-        val current = currentChecksums.getChecksum(i)
-        val stored = storedChecksums.getChecksum(i)
-        val matches = if (current == stored) "✅" else "❌"
-        "  $current   $stored   $matches"
-      }
+    val joinedChecksums =
+      buildTable {
+        row("current", "stored", "match")
+        repeat(max(currentChecksums.size, storedChecksums.size)) { i ->
+          val current = currentChecksums.getChecksum(i)
+          val stored = storedChecksums.getChecksum(i)
+          val matches = if (current == stored) "✅" else "❌"
+          row(current, stored, matches)
+        }
+      }.prependIndent("  ")
 
-    "$file\n$joinedChecksums"
-  }
+    "${file}\n${joinedChecksums}"
+  }.ifBlank { "(no checksums)" }
 
-  return "current vs stored\n$checksums"
+  return """
+        |--------
+        |${checksums.prependIndent("  ")}
+        |--------
+        """.trimMargin()
 }
