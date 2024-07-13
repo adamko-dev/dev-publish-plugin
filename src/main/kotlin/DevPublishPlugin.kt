@@ -4,6 +4,7 @@ import dev.adamko.gradle.dev_publish.data.CreatePublicationChecksum.Companion.cr
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.data.LoadPublicationChecksum.Companion.loadPublicationChecksum
+import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
@@ -14,6 +15,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
@@ -82,7 +84,6 @@ constructor(
       project = project,
       devPubExtension = devPubExtension,
       devPubTasks = devPubTasks,
-      devPublishService = devPubService,
     )
 
     configureBasePlugin(
@@ -117,7 +118,6 @@ constructor(
     project: Project,
     devPubExtension: DevPublishPluginExtension,
     devPubTasks: DevPublishTasksContainer,
-    devPublishService: Provider<DevPublishService>,
   ) {
     project.plugins.withType<MavenPublishPlugin>().configureEach {
       project.extensions.configure<PublishingExtension> {
@@ -126,10 +126,10 @@ constructor(
         }
 
         devPubTasks.generatePublicationChecksum.configure {
-          publicationData.addAllLater(devPublishService.map { service ->
+          publicationData.addAllLater(providers.provider {
             publications
               .withType<MavenPublication>()
-              .mapNotNull { service.createPublicationData(it) }
+              .mapNotNull { createPublicationData(it) }
           })
         }
       }
@@ -162,33 +162,18 @@ constructor(
       .files(publicationStore.map { it.asFileTree.sortedElements() })
       .withPropertyName("devPubPublicationStore")
 
-//    val publicationData = devPubService.flatMap { service ->
-//      providers.provider { service.createPublicationData(publication) }
-//    }
-
-//    val currentChecksum: Provider<String> =
-//      publicationData.flatMap { it.createChecksumContent() }
-
     val currentProjectDir = layout.projectDirectory
 
-    val publicationName = providers.provider { publication.name }
-    val publicationArtifacts = providers.provider { publication.artifacts }
-      .map { artifacts ->
-        objects.fileCollection()
-          .from(artifacts.map { it.file })
-          .builtBy(artifacts)
-      }
-    val publicationIdentifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
+    val publicationData = providers.provider { createPublicationData(publication) }
 
     val currentChecksum = providers.createPublicationChecksum {
       this.projectDir.set(currentProjectDir)
-      this.artifacts.from(publicationArtifacts)
-      this.identifier.set(publicationIdentifier)
+      this.artifacts.from(publicationData.map { it.artifacts })
+      this.identifier.set(publicationData.flatMap { it.identifier })
     }
 
     val storedChecksum = providers.loadPublicationChecksum {
-//      parameters.checksumFilename.set(publicationData.map { it.checksumFilename })
-      this.checksumFilename.set(publicationName.map { "$it.txt" })
+      this.checksumFilename.set(publicationData.map { "${it.name}.txt" })
       this.checksumsStore.set(checksumsStore)
     }
 
@@ -244,6 +229,29 @@ constructor(
     }
   }
 
+  /** Create an instance of [PublicationData] from [publication]. */
+  private fun createPublicationData(
+    publication: MavenPublication?,
+  ): PublicationData? {
+    if (publication == null) {
+      logger.warn("cannot create PublicationData - MavenPublication is null")
+      return null
+    }
+
+    val artifacts = providers.provider { publication.artifacts }
+      .map { artifacts ->
+        objects.fileCollection()
+          .from(artifacts.map { it.file })
+          .builtBy(artifacts)
+      }
+    val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
+
+    return objects.newInstance<PublicationData>(publication.name).apply {
+      this.identifier.set(identifier)
+      this.artifacts.from(artifacts)
+    }
+  }
+
   companion object {
     const val DEV_PUB__EXTENSION_NAME = "devPublish"
 
@@ -259,5 +267,7 @@ constructor(
     const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
     const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
+
+    private val logger = Logging.getLogger(DevPublishService::class.java)
   }
 }
