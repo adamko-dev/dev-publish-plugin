@@ -53,7 +53,7 @@ constructor(
   override fun apply(project: Project) {
     val devPubExtension = project.extensions.createDevPublishExtension()
 
-    val devPubService = project.gradle.sharedServices.registerDevPubService()
+    val devPubService = project.gradle.sharedServices.registerDevPubService(project.path)
 
     val devPubTasks = DevPublishTasksContainer(
       tasks = project.tasks,
@@ -109,8 +109,14 @@ constructor(
     }
   }
 
-  private fun BuildServiceRegistry.registerDevPubService(): Provider<DevPublishService> =
-    registerIfAbsent(SERVICE_NAME, DevPublishService::class) {
+  /**
+   * Register a server per subproject, to prevent parallel publications into the same
+   * [DevPublishPluginExtension.stagingDevMavenRepo].
+   */
+  private fun BuildServiceRegistry.registerDevPubService(
+    projectPath: String
+  ): Provider<DevPublishService> =
+    registerIfAbsent("${SERVICE_NAME}_$projectPath", DevPublishService::class) {
       maxParallelUsages.set(1)
     }
 
