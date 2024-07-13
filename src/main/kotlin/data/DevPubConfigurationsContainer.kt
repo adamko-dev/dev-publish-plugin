@@ -8,16 +8,12 @@ import dev.adamko.gradle.dev_publish.data.DevPubAttributes.Companion.DevPublishT
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.consumable
 import dev.adamko.gradle.dev_publish.utils.declarable
-import dev.adamko.gradle.dev_publish.utils.get
 import dev.adamko.gradle.dev_publish.utils.resolvable
-import java.io.File
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
-import org.gradle.api.provider.Provider
 
 /**
  * Utility class that contains all [Configuration]s used by [dev.adamko.gradle.dev_publish.DevPublishPlugin].
@@ -72,51 +68,6 @@ class DevPubConfigurationsContainer(
       }
       extendsFrom(devPublicationApiDependencies)
     }
-
-  fun resolvedDevRepos1(): Provider<List<File>> {
-    return testMavenPublicationResolver
-      .incoming
-      .artifactView {
-        attributes {
-          attribute(USAGE_ATTRIBUTE, devPubAttributes.devPublishUsage)
-          attribute(CATEGORY_ATTRIBUTE, devPubAttributes.devPublishCategory)
-          attribute(DevPublishTypeAttribute, devPubAttributes.mavenRepositoryType)
-        }
-        lenient(true)
-        @Suppress("UnstableApiUsage")
-        withVariantReselection()
-      }
-      .artifacts
-      .resolvedArtifacts
-      .map { artifacts ->
-        artifacts
-          .filter {
-            /**/ it.variant.attributes[USAGE_ATTRIBUTE] == devPubAttributes.devPublishUsage
-              && it.variant.attributes[CATEGORY_ATTRIBUTE] == devPubAttributes.devPublishUsage
-              && it.variant.attributes[DevPublishTypeAttribute] == devPubAttributes.mavenRepositoryType
-          }
-          .map(ResolvedArtifactResult::getFile)
-      }
-  }
-
-//  fun resolvedDevRepos2() {
-//    testMavenPublicationResolver
-//      .incoming
-//      .resolutionResult
-//      .rootComponent
-//      .map { component ->
-//        component.variants
-//          .filter {
-//            /**/ it.attributes[USAGE_ATTRIBUTE] == devPubAttributes.devPublishUsage
-//              && it.attributes[CATEGORY_ATTRIBUTE] == devPubAttributes.devPublishUsage
-//              && it.attributes[DevPublishTypeAttribute] == devPubAttributes.mavenRepositoryType
-//          }
-//          .flatMap { component.getDependenciesForVariant(it) }
-//          .map { it }
-//
-//        component
-//      }
-//  }
 
   @DevPublishInternalApi
   companion object
