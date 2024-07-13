@@ -1,6 +1,7 @@
 package dev.adamko.gradle.dev_publish
 
-import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer.Companion.newDevPubConfigurationsContainer
+import dev.adamko.gradle.dev_publish.data.DevPubAttributes
+import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
@@ -49,15 +50,18 @@ constructor(
 
     val devPubService = project.gradle.sharedServices.registerDevPubService()
 
-    val devPubTasks: DevPublishTasksContainer = objects.newInstance(
-      project.tasks,
-      devPubExtension,
+    val devPubTasks = DevPublishTasksContainer(
+      tasks = project.tasks,
+      devPubExtension = devPubExtension,
+      objects = objects,
     )
 
-    val devPubConfigurations = objects.newDevPubConfigurationsContainer(
+    val devPubAttributes = DevPubAttributes(objects)
+
+    val devPubConfigurations = DevPubConfigurationsContainer(
+      devPubAttributes = devPubAttributes,
       dependencies = project.dependencies,
       configurations = project.configurations,
-      objects = objects,
     )
 
     devPubTasks.updateDevRepo.configure {

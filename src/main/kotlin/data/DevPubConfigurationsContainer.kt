@@ -12,23 +12,18 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
-import org.gradle.api.model.ObjectFactory
-import org.gradle.kotlin.dsl.newInstance
-import javax.inject.Inject
 import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
+import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 
 /**
  * Utility class that contains all [Configuration]s used by [dev.adamko.gradle.dev_publish.DevPublishPlugin].
  */
 @DevPublishInternalApi
-abstract class DevPubConfigurationsContainer @Inject constructor(
+class DevPubConfigurationsContainer(
+  private val devPubAttributes: DevPubAttributes,
   dependencies: DependencyHandler,
   configurations: ConfigurationContainer,
-  objects: ObjectFactory,
 ) {
-
-  private val devPubAttributes = DevPubAttributes(objects)
 
   init {
     // register the attribute for consuming/providing
@@ -70,17 +65,5 @@ abstract class DevPubConfigurationsContainer @Inject constructor(
     }
 
   @DevPublishInternalApi
-  companion object {
-    internal fun ObjectFactory.newDevPubConfigurationsContainer(
-      dependencies: DependencyHandler,
-      configurations: ConfigurationContainer,
-      objects: ObjectFactory,
-    ): DevPubConfigurationsContainer {
-      return newInstance<DevPubConfigurationsContainer>(
-        dependencies,
-        configurations,
-        objects,
-      )
-    }
-  }
+  companion object
 }
