@@ -10,7 +10,7 @@ plugins {
 }
 
 tasks.validatePlugins {
-  enableStricterValidation.set(true)
+  enableStricterValidation = true
 }
 
 sourceSets {

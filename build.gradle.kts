@@ -24,8 +24,8 @@ dependencies {
 @Suppress("UnstableApiUsage")
 gradlePlugin {
   isAutomatedPublishing = true
-  website.set("https://github.com/adamko-dev/dev-publish-plugin")
-  vcsUrl.set("https://github.com/adamko-dev/dev-publish-plugin.git")
+  website = "https://github.com/adamko-dev/dev-publish-plugin"
+  vcsUrl = "https://github.com/adamko-dev/dev-publish-plugin.git"
 
   plugins.register("DevPublish") {
     id = "dev.adamko.dev-publish"
@@ -37,8 +37,11 @@ gradlePlugin {
       "publishing",
       "maven-publish",
       "test",
-      "publication",
       "verify",
+      "check",
+      "functional-test",
+      "integration-test",
+      "publication",
     )
   }
 }
