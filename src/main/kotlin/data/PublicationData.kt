@@ -1,5 +1,6 @@
 package dev.adamko.gradle.dev_publish.data
 
+import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.FileChecksumSeparator
 import dev.adamko.gradle.dev_publish.utils.checksum
 import javax.inject.Inject
@@ -18,7 +19,10 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
  *
  * @param[named] must match the publication name, [MavenPublication.getName]
  */
-abstract class PublicationData @Inject constructor(
+abstract class PublicationData
+@Inject
+@DevPublishInternalApi
+constructor(
   private val named: String
 ) : Named {
 

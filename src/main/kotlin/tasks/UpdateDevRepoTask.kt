@@ -12,6 +12,7 @@ import javax.inject.Inject
 @CacheableTask
 abstract class UpdateDevRepoTask
 @Inject
+@DevPublishInternalApi
 constructor(
   private val fs: FileSystemOperations,
 ) : BaseDevPublishTask() {
@@ -60,6 +61,7 @@ constructor(
   }
 
   @TaskAction
+  @DevPublishInternalApi
   fun updateDevRepo() {
     fs.sync {
       from(publicationsStore) {

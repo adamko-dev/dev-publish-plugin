@@ -16,6 +16,7 @@ import javax.inject.Inject
 @DisableCachingByDefault
 abstract class GeneratePublicationDataChecksumTask
 @Inject
+@DevPublishInternalApi
 constructor(
   private val files: FileSystemOperations,
 ) : BaseDevPublishTask() {
@@ -36,6 +37,7 @@ constructor(
   private val rootDir = project.rootDir
 
   @TaskAction
+  @DevPublishInternalApi
   fun generate() {
     files.delete { delete(tempDir) }
 
