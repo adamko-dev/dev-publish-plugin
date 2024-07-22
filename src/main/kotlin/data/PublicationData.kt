@@ -8,6 +8,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 
@@ -41,6 +42,9 @@ constructor(
    */
   @get:Input
   abstract val identifier: Property<String>
+
+  @get:Internal
+  internal val checksumFilename: String get() = "$name.txt"
 
   @Input
   override fun getName(): String = name
