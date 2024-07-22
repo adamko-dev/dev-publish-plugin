@@ -5,7 +5,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.work.DisableCachingByDefault
 
 /** Base task type for all [dev.adamko.gradle.dev_publish.DevPublishPlugin] tasks. */
-@DisableCachingByDefault
+@DisableCachingByDefault(because = "Lifecycle task")
 abstract class BaseDevPublishTask
 @DevPublishInternalApi constructor() : DefaultTask() {
   init {
