@@ -10,8 +10,6 @@ on:
         type: string
   push:
     branches: [ main ]
-  release:
-    types: [ created ]
 
 
 concurrency:
@@ -32,7 +30,7 @@ jobs:
   publish-maven:
     needs: tests
     # only publish when manually triggered, or it's the main branch, or it's for a release
-    if: inputs.checkout-ref || github.ref == 'refs/heads/main' || (github.event_name == 'release' && github.event.action == 'created')
+    if: inputs.checkout-ref || github.ref == 'refs/heads/main'
     uses: ./.github/workflows/run_publish_maven.yml
     secrets: inherit
     permissions:
