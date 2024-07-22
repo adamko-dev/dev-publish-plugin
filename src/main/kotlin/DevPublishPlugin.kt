@@ -180,7 +180,7 @@ constructor(
     }
 
     val storedChecksum = providers.loadPublicationChecksum {
-      this.checksumFilename.set(publicationData.map { "${it.name}.txt" })
+      this.checksumFilename.set(publicationData.map { it.checksumFilename })
       this.checksumsStore.set(checksumsStore)
     }
 

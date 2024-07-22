@@ -1,8 +1,8 @@
 package dev.adamko.gradle.dev_publish.tasks
 
-import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
+import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.utils.info
 import javax.inject.Inject
 import org.gradle.api.NamedDomainObjectContainer
@@ -55,7 +55,7 @@ constructor(
     publicationData.forEach { data ->
       logger.info("Creating publication data checksum for ${data.name} ${data.artifacts.asPath}")
 
-      val checksumFile = tempDir.resolve("${data.name}.txt")
+      val checksumFile = tempDir.resolve(data.checksumFilename)
 
       val checksum = providers.createPublicationChecksum {
         this.projectDir.set(currentProjectDir)
