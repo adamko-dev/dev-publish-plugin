@@ -85,17 +85,17 @@ private fun haveOutcome(outcome: TaskOutcome): Matcher<BuildTask?> =
 
 
 private fun haveAnyOutcome(outcomes: Collection<TaskOutcome>): Matcher<BuildTask?> {
-  val shouldHaveOutcome = when (outcomes.size) {
+  val haveOutcome = when (outcomes.size) {
     0 -> error("Must provide 1 or more expected task outcome, but received none")
-    1 -> "should have outcome ${outcomes.first().name}"
-    else -> "should have any outcome of ${outcomes.joinToString()}"
+    1 -> "have outcome ${outcomes.first().name}"
+    else -> "have any outcome of ${outcomes.joinToString()}"
   }
 
   return neverNullMatcher { value ->
     MatcherResult(
       value.outcome in outcomes,
-      { "Task ${value.path} $shouldHaveOutcome, but was ${value.outcome}" },
-      { "Task ${value.path} $shouldHaveOutcome, but was ${value.outcome}" },
+      { "Task ${value.path} should $haveOutcome, but was ${value.outcome}" },
+      { "Task ${value.path} should not $haveOutcome, but was ${value.outcome}" },
     )
   }
 }

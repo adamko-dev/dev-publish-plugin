@@ -2,6 +2,7 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import java.nio.file.Path
@@ -10,7 +11,7 @@ import org.intellij.lang.annotations.Subst
 
 class MultipleGradlePluginsTest : FunSpec({
 
-  context("test multiple Gradle plugins") {
+  context("multiple Gradle plugins") {
     val project = project()
 
     test("clean should succeed") {
@@ -252,76 +253,83 @@ private fun Path.shouldBeMavenDevRepoWithPlugins(
   }
 }
 
-private fun project(): GradleProjectTest = gradleKtsProjectTest("multiple-gradle-plugins") {
+private fun TestScope.project(): GradleProjectTest =
+  gradleKtsProjectTest(
+    projectName = "multiple-gradle-plugins",
+    testProjectPath = testCase.descriptor.slashSeparatedPath(),
+  ) {
 
-  buildGradleKts = """
-    plugins {
-      `embedded-kotlin`
-      `java-gradle-plugin`
-      `maven-publish`
-      id("dev.adamko.dev-publish") version "+"
-    }
-    
-    group = "dev.publish.plugin.test"
-    version = "1.2.3"
-    
-    gradlePlugin {
-      isAutomatedPublishing = true
-    
-      plugins.register("alpha") {
-        id = "plugin-alpha"
-        displayName = "PluginAlpha"
-        implementationClass = "PluginAlpha"
+    buildGradleKts = """
+      plugins {
+        `embedded-kotlin`
+        `java-gradle-plugin`
+        `maven-publish`
+        id("dev.adamko.dev-publish") version "+"
       }
-      plugins.register("beta") {
-        id = "plugin-beta"
-        displayName = "PluginBeta"
-        implementationClass = "PluginBeta"
+      
+      group = "dev.publish.plugin.test"
+      version = "1.2.3"
+      
+      gradlePlugin {
+        isAutomatedPublishing = true
+      
+        plugins.register("alpha") {
+          id = "plugin-alpha"
+          displayName = "PluginAlpha"
+          implementationClass = "PluginAlpha"
+        }
+        plugins.register("beta") {
+          id = "plugin-beta"
+          displayName = "PluginBeta"
+          implementationClass = "PluginBeta"
+        }
+        plugins.register("gamma") {
+          id = "plugin-gamma"
+          displayName = "PluginGamma"
+          implementationClass = "PluginGamma"
+        }
       }
-      plugins.register("gamma") {
-        id = "plugin-gamma"
-        displayName = "PluginGamma"
-        implementationClass = "PluginGamma"
-      }
-    }
-  """.trimIndent()
+    """.trimIndent()
 
-  dir("src/main/kotlin") {
-    createKotlinFile(
-      "PluginAlpha.kt", """
-        import org.gradle.api.*   
-        
-        class PluginAlpha : Plugin<Project> {
-          override fun apply(project: Project) {
-            println("plugin-alpha")
+    dir("src/main/kotlin") {
+      createKotlinFile(
+        "PluginAlpha.kt",
+        """
+          import org.gradle.api.*   
+          
+          class PluginAlpha : Plugin<Project> {
+            override fun apply(project: Project) {
+              println("plugin-alpha")
+            }
           }
-        }
-      """.trimIndent()
-    )
-    createKotlinFile(
-      "PluginBeta.kt", """
-        import org.gradle.api.*   
-        
-        class PluginBeta : Plugin<Project> {
-          override fun apply(project: Project) {
-            println("plugin-beta")
+        """.trimIndent()
+      )
+      createKotlinFile(
+        "PluginBeta.kt",
+        """
+          import org.gradle.api.*   
+          
+          class PluginBeta : Plugin<Project> {
+            override fun apply(project: Project) {
+              println("plugin-beta")
+            }
           }
-        }
-      """.trimIndent()
-    )
-    createKotlinFile(
-      "PluginGamma.kt", """
-        import org.gradle.api.*   
-        
-        class PluginGamma : Plugin<Project> {
-          override fun apply(project: Project) {
-            println("plugin-gamma")
+        """.trimIndent()
+      )
+      createKotlinFile(
+        "PluginGamma.kt",
+        """
+          import org.gradle.api.*   
+          
+          class PluginGamma : Plugin<Project> {
+            override fun apply(project: Project) {
+              println("plugin-gamma")
+            }
           }
-        }
-      """.trimIndent()
-    )
+        """.trimIndent()
+      )
+    }
   }
-}
 
 
 private fun GradleProjectTest.updateVersion(version: String) {

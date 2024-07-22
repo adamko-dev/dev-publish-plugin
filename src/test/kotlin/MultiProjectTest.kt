@@ -77,7 +77,10 @@ class MultiProjectTest : FunSpec({
   companion object {
 
     private fun TestScope.project(): GradleProjectTest =
-      gradleKtsProjectTest(testCase.name.testName.replaceNonAlphaNumeric()) {
+      gradleKtsProjectTest(
+        projectName = "multi-module project",
+        testProjectPath = testCase.descriptor.slashSeparatedPath(),
+      ) {
 
         settingsGradleKts += """
           include(
