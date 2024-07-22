@@ -12,8 +12,9 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.work.DisableCachingByDefault
 
-@CacheableTask
+@DisableCachingByDefault(because = "This task only relocates files")
 abstract class UpdateDevRepoTask
 @Inject
 @DevPublishInternalApi

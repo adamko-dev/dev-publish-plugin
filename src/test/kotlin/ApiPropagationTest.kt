@@ -44,138 +44,145 @@ class ApiPropagationTest : FunSpec({
 }) {
   companion object {
 
-    private fun TestScope.project() = gradleKtsProjectTest(testCase.name.testName.replaceNonAlphaNumeric()) {
+    private fun TestScope.project() =
+      gradleKtsProjectTest(
+        projectName = "multi-module project",
+        testProjectPath = testCase.descriptor.slashSeparatedPath(),
+      ) {
 
-      settingsGradleKts += """
-        include(
-          ":project-kotlin-lib1",
-          ":project-kotlin-lib2",
-          ":project-kotlin-app",
-        
-          ":project-aggregate",
-        )
-      """.trimIndent()
+        settingsGradleKts += """
+          include(
+            ":project-kotlin-lib1",
+            ":project-kotlin-lib2",
+            ":project-kotlin-app",
+          
+            ":project-aggregate",
+          )
+        """.trimIndent()
 
-      buildGradleKts = """
-          plugins {
-            kotlin("jvm") version embeddedKotlinVersion apply false
-          }
-      """.trimIndent()
-
-      dir("project-kotlin-lib1") {
         buildGradleKts = """
-          plugins {
-            kotlin("jvm")
-            id("dev.adamko.dev-publish") version "+"
-            `maven-publish`
-          }
-          
-          group = "project.kotlin.lib1"
-          version = "1.2.3"
-          
-          publishing {
-            publications {
-              create<MavenPublication>("mavenJava") {
-                from(components["java"])
+            plugins {
+              kotlin("jvm") version embeddedKotlinVersion apply false
+            }
+        """.trimIndent()
+
+        dir("project-kotlin-lib1") {
+          buildGradleKts = """
+            plugins {
+              kotlin("jvm")
+              id("dev.adamko.dev-publish") version "+"
+              `maven-publish`
+            }
+            
+            group = "project.kotlin.lib1"
+            version = "1.2.3"
+            
+            publishing {
+              publications {
+                create<MavenPublication>("mavenJava") {
+                  from(components["java"])
+                }
               }
             }
-          }
-        """.trimIndent()
-
-        createKotlinFile(
-          "src/main/kotlin/KotlinLib1Class.kt", """
-            class KotlinLib1Class {
-              fun name() = "project.kotlin.lib1"
-            }
           """.trimIndent()
-        )
-      }
 
-      dir("project-kotlin-lib2") {
-        buildGradleKts = """
-          plugins {
-            kotlin("jvm")
-            id("dev.adamko.dev-publish") version "+"
-            `maven-publish`
-          }
-          
-          dependencies {
-            devPublicationApi(project(":project-kotlin-lib1"))        
-          }
-          
-          group = "project.kotlin.lib2"
-          version = "9.0.1"
-          
-          publishing {
-            publications {
-              create<MavenPublication>("mavenJava") {
-                from(components["java"])
+          createKotlinFile(
+            "src/main/kotlin/KotlinLib1Class.kt",
+            """
+              class KotlinLib1Class {
+                fun name() = "project.kotlin.lib1"
+              }
+            """.trimIndent()
+          )
+        }
+
+        dir("project-kotlin-lib2") {
+          buildGradleKts = """
+            plugins {
+              kotlin("jvm")
+              id("dev.adamko.dev-publish") version "+"
+              `maven-publish`
+            }
+            
+            dependencies {
+              devPublicationApi(project(":project-kotlin-lib1"))        
+            }
+            
+            group = "project.kotlin.lib2"
+            version = "9.0.1"
+            
+            publishing {
+              publications {
+                create<MavenPublication>("mavenJava") {
+                  from(components["java"])
+                }
               }
             }
-          }
-        """.trimIndent()
-
-        createKotlinFile(
-          "src/main/kotlin/KotlinLib2Class.kt", """
-            class KotlinLib2Class {
-              fun name() = "project.kotlin.lib2"
-            }
           """.trimIndent()
-        )
-      }
 
-      dir("project-kotlin-app") {
-        buildGradleKts = """
-          plugins {
-            kotlin("jvm")
-            id("dev.adamko.dev-publish") version "+"
-            `maven-publish`
-          }
-          
-          group = "project.kotlin.app"
-          version = "9.9.9"
-          
-          dependencies {
-            implementation(project(":project-kotlin-lib1"))
-            implementation(project(":project-kotlin-lib2"))
-          
-            // don't need lib1 dependency, it's exposed as api() by lib2
-            //devPublication(project(":project-kotlin-lib1")) 
-            devPublicationApi(project(":project-kotlin-lib2"))  
-          }
-          
-          publishing {
-            publications {
-              create<MavenPublication>("mavenJava") {
-                from(components["java"])
+          createKotlinFile(
+            "src/main/kotlin/KotlinLib2Class.kt",
+            """
+              class KotlinLib2Class {
+                fun name() = "project.kotlin.lib2"
+              }
+            """.trimIndent()
+          )
+        }
+
+        dir("project-kotlin-app") {
+          buildGradleKts = """
+            plugins {
+              kotlin("jvm")
+              id("dev.adamko.dev-publish") version "+"
+              `maven-publish`
+            }
+            
+            group = "project.kotlin.app"
+            version = "9.9.9"
+            
+            dependencies {
+              implementation(project(":project-kotlin-lib1"))
+              implementation(project(":project-kotlin-lib2"))
+            
+              // don't need lib1 dependency, it's exposed as api() by lib2
+              //devPublication(project(":project-kotlin-lib1")) 
+              devPublicationApi(project(":project-kotlin-lib2"))  
+            }
+            
+            publishing {
+              publications {
+                create<MavenPublication>("mavenJava") {
+                  from(components["java"])
+                }
               }
             }
-          }
-        """.trimIndent()
+          """.trimIndent()
 
-        createKotlinFile(
-          "src/main/kotlin/KotlinNoDevPublishClass.kt", """
-            class KotlinApp {
-              fun app() = "x"
+          createKotlinFile(
+            "src/main/kotlin/KotlinNoDevPublishClass.kt",
+            """
+              class KotlinApp {
+                fun app() = "x"
+              }
+            """.trimIndent()
+          )
+        }
+
+        dir("project-aggregate") {
+          buildGradleKts = """
+            plugins {
+              id("dev.adamko.dev-publish") version "+"
+            }
+            
+            group = "project.kotlin.aggregate"
+            
+            dependencies {
+              devPublication(project(":project-kotlin-app"))
             }
           """.trimIndent()
-        )
+        }
       }
-
-      dir("project-aggregate") {
-        buildGradleKts = """
-          plugins {
-            id("dev.adamko.dev-publish") version "+"
-          }
-          
-          group = "project.kotlin.aggregate"
-          
-          dependencies {
-            devPublication(project(":project-kotlin-app"))
-          }
-        """.trimIndent()
-      }
-    }
 
     @Language("TEXT")
     private val ExpectedDevRepoTree = """

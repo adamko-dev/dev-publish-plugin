@@ -1,8 +1,6 @@
 package dev.adamko.gradle.dev_publish.test_utils
 
 import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.testMavenRepoPathString
-import org.gradle.testkit.runner.GradleRunner
-import org.intellij.lang.annotations.Language
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -10,6 +8,8 @@ import kotlin.io.path.name
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import org.gradle.testkit.runner.GradleRunner
+import org.intellij.lang.annotations.Language
 
 
 // utils for testing using Gradle TestKit
@@ -17,17 +17,20 @@ import kotlin.reflect.KProperty
 
 class GradleProjectTest(
   override val projectDir: Path,
+  val projectName: String = projectDir.name.lowercase(),
 ) : ProjectDirectoryScope {
 
   constructor(
-    testProjectName: String,
+    testProjectPath: String,
     baseDir: Path = funcTestTempDir,
-  ) : this(projectDir = baseDir.resolve(testProjectName))
+    projectName: String,
+  ) : this(
+    projectDir = baseDir.resolve(testProjectPath),
+    projectName = projectName,
+  )
 
   val runner: GradleRunner = GradleRunner.create()
     .withProjectDir(projectDir.toFile())
-
-  val projectName by projectDir::name
 
   companion object {
 
@@ -55,17 +58,22 @@ class GradleProjectTest(
  * Builder for testing a Gradle project that uses Kotlin script DSL and creates default
  * `settings.gradle.kts` and `gradle.properties` files.
  *
- * @param[testProjectName] the path of the project directory
+ * @param[testProjectPath] the path of the project directory, relative to [baseDir].
  */
 fun gradleKtsProjectTest(
-  testProjectName: String,
+  projectName: String,
+  testProjectPath: String,
   baseDir: Path = GradleProjectTest.funcTestTempDir,
   build: GradleProjectTest.() -> Unit,
 ): GradleProjectTest {
-  return GradleProjectTest(baseDir = baseDir, testProjectName = testProjectName).apply {
+  return GradleProjectTest(
+    baseDir = baseDir,
+    testProjectPath = testProjectPath,
+    projectName = projectName,
+  ).apply {
 
     settingsGradleKts = """
-      |rootProject.name = "$projectName"
+      |rootProject.name = "${this.projectName}"
       |
       |pluginManagement {
       |  repositories {
