@@ -3,7 +3,7 @@
 junit = "5.11.0"
 kotest = "5.9.1"
 
-gradlePlugin-pluginPublishPlugin = "1.2.1"
+gradlePlugin-pluginPublishPlugin = "1.2.2"
 gradlePlugin-bcvMu = "0.1.0"
 
 [libraries]
