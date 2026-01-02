@@ -99,3 +99,18 @@ idea {
     )
   }
 }
+
+tasks.nmcpPublishAllPublicationsToCentralPortal {
+  val isReleaseVersion = mavenPublishing.isReleaseVersion
+  onlyIf("is release version") { isReleaseVersion.get() }
+}
+tasks.nmcpPublishAllPublicationsToCentralPortalSnapshots {
+  val isReleaseVersion = mavenPublishing.isReleaseVersion
+  onlyIf("is snapshot version") { !isReleaseVersion.get() }
+}
+
+tasks.register("nmcpPublish") {
+  group = PublishingPlugin.PUBLISH_TASK_GROUP
+  dependsOn(tasks.nmcpPublishAllPublicationsToCentralPortal)
+  dependsOn(tasks.nmcpPublishAllPublicationsToCentralPortalSnapshots)
+}
