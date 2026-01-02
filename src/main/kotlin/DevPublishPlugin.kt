@@ -93,7 +93,9 @@ constructor(
     )
 
     project.tasks.withType<PublishToMavenRepository>().configureEach {
-      configurePublishToMavenRepositoryTask(devPubExtension, devPubService)
+      if (name.endsWith("To${DEV_PUB__MAVEN_REPO_NAME}Repository")) {
+        configurePublishToMavenRepositoryTask(devPubExtension, devPubService)
+      }
     }
   }
 
