@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/run_gradle_task.yml
     secrets: inherit
     with:
-      runs-on: linux-latest
+      runs-on: ubuntu-latest
       gradle-task: >-
         nmcpPublish
         --stacktrace
@@ -56,7 +56,7 @@ jobs:
     uses: ./.github/workflows/run_gradle_task.yml
     secrets: inherit
     with:
-      runs-on: linux-latest
+      runs-on: ubuntu-latest
       gradle-task: >-
         publishAllPublicationsToAdamkoDevRepository
         --stacktrace
