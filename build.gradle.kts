@@ -1,10 +1,10 @@
 import buildsrc.utils.excludeProjectConfigurationDirs
 import buildsrc.utils.skipTestFixturesPublications
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   buildsrc.conventions.`kotlin-gradle-plugin`
-  dev.adamko.kotlin.`binary-compatibility-validator`
   `java-test-fixtures`
   idea
 }
@@ -19,8 +19,24 @@ dependencies {
   testFixturesApi(libs.kotest.assertionsCore)
 }
 
+kotlin {
+  jvmToolchain(17)
+  @OptIn(ExperimentalAbiValidation::class)
+  abiValidation {
+    enabled = true
+    variants.configureEach {
+      tasks.check {
+        dependsOn(legacyDump.legacyCheckTaskProvider)
+      }
+    }
+    filters {
+      excluded {
+        annotatedWith.add("dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi")
+      }
+    }
+  }
+}
 
-@Suppress("UnstableApiUsage")
 gradlePlugin {
   isAutomatedPublishing = true
   website = "https://github.com/adamko-dev/dev-publish-plugin"
@@ -45,8 +61,8 @@ gradlePlugin {
   }
 }
 
-val testMavenRepoDir = layout.buildDirectory.dir("test-maven-repo")
-val projectTestTempDir = layout.buildDirectory.dir("project-tests")
+val testMavenRepoDir: Provider<Directory> = layout.buildDirectory.dir("test-maven-repo")
+val projectTestTempDir: Provider<Directory> = layout.buildDirectory.dir("project-tests")
 
 publishing {
   repositories {
@@ -56,20 +72,12 @@ publishing {
   }
 }
 
-binaryCompatibilityValidator {
-  ignoredMarkers.addAll(
-    "dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi",
-  )
-}
-
 skipTestFixturesPublications()
 
 tasks.withType<Test>().configureEach {
   dependsOn("publishAllPublicationsToTestMavenRepoRepository")
   systemProperty("testMavenRepoDir", testMavenRepoDir.get().asFile.invariantSeparatorsPath)
   systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
-  // Remove Kotest autoscan.disable when Kotest version >= 6.0
-  systemProperty("kotest.framework.classpath.scanning.autoscan.disable", true)
 }
 
 tasks.withType<KotlinCompile>().configureEach {

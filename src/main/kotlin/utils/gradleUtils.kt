@@ -28,13 +28,10 @@ import org.gradle.util.GradleVersion
  * isCanBeDeclared = true
  * ```
  */
-internal fun Configuration.declarable(
-  visible: Boolean = false,
-) {
+internal fun Configuration.declarable() {
   isCanBeResolved = false
   isCanBeConsumed = false
   canBeDeclared = true
-  isVisible = visible
 }
 
 
@@ -47,13 +44,10 @@ internal fun Configuration.declarable(
  * isCanBeDeclared = false
  * ```
  */
-internal fun Configuration.consumable(
-  visible: Boolean = false,
-) {
+internal fun Configuration.consumable() {
   isCanBeResolved = false
   isCanBeConsumed = true
   canBeDeclared = false
-  isVisible = visible
 }
 
 
@@ -66,13 +60,10 @@ internal fun Configuration.consumable(
  * isCanBeDeclared = false
  * ```
  */
-internal fun Configuration.resolvable(
-  visible: Boolean = false,
-) {
+internal fun Configuration.resolvable() {
   isCanBeResolved = true
   isCanBeConsumed = false
   canBeDeclared = false
-  isVisible = visible
 }
 
 
@@ -125,11 +116,11 @@ internal fun RelativePath.dropDirectory(): RelativePath =
 
 
 /** Instantiate a new [Attribute] of type [T] */
-internal inline fun <reified T> Attribute(name: String): Attribute<T> =
+internal inline fun <reified T: Any> Attribute(name: String): Attribute<T> =
   Attribute.of(name, T::class.java)
 
 
-internal operator fun <T> AttributeContainer.get(key: Attribute<T>): T? =
+internal operator fun <T: Any> AttributeContainer.get(key: Attribute<T>): T? =
   getAttribute(key)
 
 
