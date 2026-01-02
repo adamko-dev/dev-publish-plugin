@@ -71,18 +71,6 @@ publishing {
       }
     }
 
-    val jbSpaceUsername = mavenPublishing.jbSpaceUsername.orNull
-    val jbSpacePassword = mavenPublishing.jbSpacePassword.orNull
-    if (!jbSpaceUsername.isNullOrBlank() && !jbSpacePassword.isNullOrBlank()) {
-      maven(mavenPublishing.jetBrainsSpaceReleaseUrl) {
-        name = "JetBrainsSpace"
-        credentials {
-          username = jbSpaceUsername
-          password = jbSpacePassword
-        }
-      }
-    }
-
     val adamkoDevUsername = mavenPublishing.adamkoDevUsername.orNull
     val adamkoDevPassword = mavenPublishing.adamkoDevPassword.orNull
     if (!adamkoDevUsername.isNullOrBlank() && !adamkoDevPassword.isNullOrBlank()) {
@@ -116,7 +104,6 @@ signing {
       .any {
         it.repository.name in setOf(
           "SonatypeRelease",
-          "JetBrainsSpace",
           "AdamkoDev",
         )
       }

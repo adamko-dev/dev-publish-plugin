@@ -5,7 +5,8 @@ import javax.inject.Inject
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.getByType
 
 
 /**
@@ -34,22 +35,6 @@ abstract class MavenPublishingSettings @Inject constructor(
   val mavenCentralPassword: Provider<String> =
     dppProp("mavenCentralPassword")
       .orElse(providers.environmentVariable("MAVEN_SONATYPE_PASSWORD"))
-
-
-  val jetBrainsSpaceReleaseUrl: Provider<String> =
-    isReleaseVersion.map { isRelease ->
-      if (isRelease) {
-        "https://maven.pkg.jetbrains.space/adamkodev/p/main/maven-releases/"
-      } else {
-        "https://maven.pkg.jetbrains.space/adamkodev/p/main/maven-snapshots/"
-      }
-    }
-  val jbSpaceUsername: Provider<String> =
-    dppProp("jbSpaceUsername")
-      .orElse(providers.environmentVariable("MAVEN_JB_SPACE_USERNAME"))
-  val jbSpacePassword: Provider<String> =
-    dppProp("jbSpacePassword")
-      .orElse(providers.environmentVariable("MAVEN_JB_SPACE_PASSWORD"))
 
 
   val adamkoDevReleaseUrl: Provider<String> =
