@@ -115,18 +115,18 @@ dependencies {
   nmcpAggregation(project)
 }
 
-tasks.publishAggregationToCentralPortal {
+tasks.nmcpPublishAggregationToCentralPortal {
   val isReleaseVersion = mavenPublishing.isReleaseVersion
-  onlyIf("is release version") { isReleaseVersion.get() }
+  onlyIf("is release version") { _ -> isReleaseVersion.get() }
 }
 
-tasks.publishAggregationToCentralPortalSnapshots {
+tasks.nmcpPublishAggregationToCentralPortalSnapshots {
   val isReleaseVersion = mavenPublishing.isReleaseVersion
-  onlyIf("is snapshot version") { !isReleaseVersion.get() }
+  onlyIf("is snapshot version") { _ -> !isReleaseVersion.get() }
 }
 
 tasks.register("nmcpPublish") {
   group = PublishingPlugin.PUBLISH_TASK_GROUP
-  dependsOn(tasks.publishAggregationToCentralPortal)
-  dependsOn(tasks.publishAggregationToCentralPortalSnapshots)
+  dependsOn(tasks.nmcpPublishAggregationToCentralPortal)
+  dependsOn(tasks.nmcpPublishAggregationToCentralPortalSnapshots)
 }
