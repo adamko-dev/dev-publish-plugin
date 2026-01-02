@@ -7,7 +7,12 @@ package dev.adamko.gradle.dev_publish.utils
  */
 internal class StringTableBuilder private constructor() {
 
-  private data class Row(val values: List<String>) : List<String> by values
+  private data class Row(val values: List<String>) : List<String> by values {
+    @Deprecated("Deprecated in Java")
+    override fun <T> toArray(generator: java.util.function.IntFunction<Array<out T?>?>): Array<out T?>? =
+      @Suppress("DEPRECATION")
+      super.toArray(generator)
+  }
 
   private val rows: MutableList<Row> = mutableListOf()
 
