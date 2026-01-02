@@ -7,6 +7,7 @@ plugins {
   buildsrc.conventions.`kotlin-gradle-plugin`
   `java-test-fixtures`
   idea
+  id("com.gradleup.nmcp.aggregation")
 }
 
 project.version = "0.5.0-SNAPSHOT"
@@ -100,17 +101,32 @@ idea {
   }
 }
 
-tasks.nmcpPublishAllPublicationsToCentralPortal {
+nmcpAggregation {
+  centralPortal {
+    username = mavenPublishing.mavenCentralUsername
+    password = mavenPublishing.mavenCentralPassword
+
+    // publish manually from the portal
+    publishingType = "USER_MANAGED"
+  }
+}
+
+dependencies {
+  nmcpAggregation(project)
+}
+
+tasks.publishAggregationToCentralPortal {
   val isReleaseVersion = mavenPublishing.isReleaseVersion
   onlyIf("is release version") { isReleaseVersion.get() }
 }
-tasks.nmcpPublishAllPublicationsToCentralPortalSnapshots {
+
+tasks.publishAggregationToCentralPortalSnapshots {
   val isReleaseVersion = mavenPublishing.isReleaseVersion
   onlyIf("is snapshot version") { !isReleaseVersion.get() }
 }
 
 tasks.register("nmcpPublish") {
   group = PublishingPlugin.PUBLISH_TASK_GROUP
-  dependsOn(tasks.nmcpPublishAllPublicationsToCentralPortal)
-  dependsOn(tasks.nmcpPublishAllPublicationsToCentralPortalSnapshots)
+  dependsOn(tasks.publishAggregationToCentralPortal)
+  dependsOn(tasks.publishAggregationToCentralPortalSnapshots)
 }
