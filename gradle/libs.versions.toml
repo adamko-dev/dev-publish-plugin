@@ -4,6 +4,7 @@ junit = "6.0.1"
 kotest = "6.0.7"
 
 gradlePlugin-pluginPublishPlugin = "2.0.0"
+gradlePlugin-nmcp = "1.4.3"
 
 [libraries]
 
@@ -19,4 +20,5 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 
 ## region Gradle Plugins
 gradlePlugin-pluginPublishPlugin = { module = "com.gradle.publish:plugin-publish-plugin", version.ref = "gradlePlugin-pluginPublishPlugin" }
+gradlePlugin-nmcp = { module = "com.gradleup.nmcp:nmcp", version.ref = "gradlePlugin-nmcp" }
 ## endregion

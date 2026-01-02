@@ -17,7 +17,7 @@ abstract class MavenPublishingSettings @Inject constructor(
   private val providers: ProviderFactory,
 ) {
 
-  private val isReleaseVersion: Provider<Boolean> =
+  val isReleaseVersion: Provider<Boolean> =
     providers.provider { !project.version.toString().endsWith("-SNAPSHOT") }
 
 
