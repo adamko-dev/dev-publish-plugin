@@ -106,8 +106,13 @@ fun gradleKtsProjectTest(
     """.trimMargin()
 
     gradleProperties = """
-      |
-    """.trimMargin()
+      |org.gradle.jvmargs=-Dfile.encoding=UTF-8
+      |org.gradle.caching=true
+      |org.gradle.configuration-cache=true
+      |org.gradle.logging.stacktrace=all
+      |org.gradle.parallel=true
+      |org.gradle.welcome=never
+      |""".trimMargin()
 
     build()
   }
