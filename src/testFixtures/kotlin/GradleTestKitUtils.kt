@@ -1,6 +1,6 @@
 package dev.adamko.gradle.dev_publish.test_utils
 
-import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.testMavenRepoPathString
+import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.settingRepositories
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -37,12 +37,39 @@ class GradleProjectTest(
     /** file-based Maven Repo that contains the published plugin */
     private val testMavenRepoDir: Path by systemProperty(Paths::get)
 
-    val testMavenRepoPathString
+    val testMavenRepoPathString: String
       get() = testMavenRepoDir
         .toFile()
         .canonicalFile
         .absoluteFile
         .invariantSeparatorsPath
+
+    val settingRepositories: String
+      get() = """
+        |pluginManagement {
+        |  repositories {
+        |    exclusiveContent {
+        |      forRepository {
+        |        maven(file("$testMavenRepoPathString")) {
+        |          name = "MavenDevRepo"
+        |        }
+        |      }
+        |      filter { 
+        |        includeGroup("dev.adamko.dev-publish")
+        |        includeGroup("dev.adamko.gradle")
+        |      }
+        |    }
+        |    mavenCentral()
+        |    gradlePluginPortal()
+        |  }
+        |}
+        |
+        |dependencyResolutionManagement {
+        |  repositories {
+        |    mavenCentral()
+        |  }
+        |}
+        """.trimMargin()
 
     val projectTestTempDir: Path by systemProperty(Paths::get)
 
@@ -75,29 +102,7 @@ fun gradleKtsProjectTest(
     settingsGradleKts = """
       |rootProject.name = "${this.projectName}"
       |
-      |pluginManagement {
-      |  repositories {
-      |    exclusiveContent {
-      |        forRepository {
-      |            maven(file("$testMavenRepoPathString")) {
-      |                name = "MavenDevRepo"
-      |            }
-      |        }
-      |        filter { 
-      |          includeGroup("dev.adamko.dev-publish")
-      |          includeGroup("dev.adamko.gradle")
-      |        }
-      |    }
-      |    mavenCentral()
-      |    gradlePluginPortal()
-      |  }
-      |}
-      |
-      |dependencyResolutionManagement {
-      |  repositories {
-      |    mavenCentral()
-      |  }
-      |}
+      |$settingRepositories
       |
     """.trimMargin()
 
