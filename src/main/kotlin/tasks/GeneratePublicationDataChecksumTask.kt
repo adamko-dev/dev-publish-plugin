@@ -4,6 +4,7 @@ import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.utils.info
+import java.io.File
 import javax.inject.Inject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.DirectoryProperty
@@ -40,7 +41,7 @@ constructor(
   abstract val tempDir: DirectoryProperty
 
   /** Used for prettier log messages. */
-  private val rootDir = project.rootDir
+  private val rootDir: File = project.rootDir
 
   @TaskAction
   @DevPublishInternalApi
