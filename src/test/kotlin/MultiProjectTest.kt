@@ -19,9 +19,7 @@ class MultiProjectTest : FunSpec({
           "help",
           "--stacktrace",
         )
-        .build {
-          output shouldContain "SUCCESSFUL"
-        }
+        .build()
     }
 
     test("can aggregate requested projects") {
@@ -31,8 +29,20 @@ class MultiProjectTest : FunSpec({
         "--configuration-cache",
         "--build-cache",
       ).build {
-        output shouldContain "SUCCESSFUL"
+        val mavenDevDir = project.projectDir.resolve("project-aggregate-some/build/maven-dev")
 
+        mavenDevDir.toTreeString() shouldBe ExpectedDevRepoTree
+      }
+    }
+
+    test("re-running after clean should also aggregate requested projects") {
+      project.runner.withArguments(
+        "clean",
+        ":project-aggregate-some:updateDevRepo",
+        "--stacktrace",
+        "--configuration-cache",
+        "--build-cache",
+      ).build {
         val mavenDevDir = project.projectDir.resolve("project-aggregate-some/build/maven-dev")
 
         mavenDevDir.toTreeString() shouldBe ExpectedDevRepoTree
