@@ -41,10 +41,9 @@ class BuildCacheTest : FunSpec({
         }
 
         val initialBuildCacheSize =
-          expectedBuildCacheDir.walk().filter { it.isRegularFile() }.map { it.fileSize() }.sum()
+          expectedBuildCacheDir.walk().filter { it.isRegularFile() }.sumOf { it.fileSize() }
 
         project.runner
-          //.forwardOutput()
           .withArguments(
             ":updateDevRepo",
             "--stacktrace",
@@ -75,7 +74,7 @@ class BuildCacheTest : FunSpec({
 
   companion object {
     private fun Path.recursiveFileSize(): Long =
-      walk().filter { it.isRegularFile() }.map { it.fileSize() }.sum()
+      walk().filter { it.isRegularFile() }.sumOf { it.fileSize() }
 
     private fun TestScope.project(): GradleProjectTest =
       gradleKtsProjectTest(
@@ -84,32 +83,32 @@ class BuildCacheTest : FunSpec({
       ) {
 
         buildGradleKts = """
-            plugins {
-              kotlin("jvm") version embeddedKotlinVersion
-              id("dev.adamko.dev-publish") version "+"
-              `maven-publish`
-            }
-            
-            group = "foo.project"
-            version = "0.0.1"
-            
-            publishing {
-              publications {
-                create<MavenPublication>("mavenJava") {
-                  from(components["java"])
-                }
-              }
-            }
-        """.trimIndent()
+          |plugins {
+          |  kotlin("jvm") version embeddedKotlinVersion
+          |  id("dev.adamko.dev-publish") version "+"
+          |  `maven-publish`
+          |}
+          |
+          |group = "foo.project"
+          |version = "0.0.1"
+          |
+          |publishing {
+          |  publications {
+          |    create<MavenPublication>("mavenJava") {
+          |      from(components["java"])
+          |    }
+          |  }
+          |}
+          |""".trimMargin()
 
         settingsGradleKts += """
-          
-        buildCache {
-            local {
-                directory = file("local-cache").toURI()
-            }
-        }
-        """.trimIndent()
+          |  
+          |buildCache {
+          |    local {
+          |        directory = file("local-cache").toURI()
+          |    }
+          |}
+          |""".trimMargin()
 
         createKotlinFile(
           "src/main/kotlin/FooClass.kt", """
