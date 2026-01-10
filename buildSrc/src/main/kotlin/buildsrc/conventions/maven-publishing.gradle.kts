@@ -87,18 +87,13 @@ signing {
     useInMemoryPgpKeys(keyId, key, password)
   }
 
-  if (!keyId.isNullOrBlank() && !key.isNullOrBlank() && !password.isNullOrBlank()) {
-    useInMemoryPgpKeys(keyId, key, password)
-  }
-
   setRequired({
-    signingCredentialsPresent || gradle.taskGraph.allTasks
+    signingCredentialsPresent
+        || gradle.taskGraph.allTasks.any { it.path == ":nmcpPublish" }
+        || gradle.taskGraph.allTasks
       .filterIsInstance<PublishToMavenRepository>()
       .any { task ->
-        task.repository.name in setOf(
-          "SonatypeRelease",
-          "AdamkoDev",
-        )
+        task.repository.name == "AdamkoDev"
       }
   })
 }
