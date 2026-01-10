@@ -1,10 +1,9 @@
 package dev.adamko.gradle.dev_publish.test_utils
 
-import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.PathMatcher
-import kotlin.io.path.isRegularFile
+import kotlin.io.path.*
 
 // based on https://gist.github.com/mfwgenerics/d1ec89eb80c95da9d542a03b49b5e15b
 // context: https://kotlinlang.slack.com/archives/C0B8MA7FA/p1676106647658099
@@ -13,26 +12,22 @@ typealias PathGlobMatchersBuilder = PathGlobMatchers.() -> Unit
 
 fun Path.toTreeString(
   filter: PathGlobMatchersBuilder = {}
-): String = toFile().toTreeString(filter)
-
-fun File.toTreeString(
-  filter: PathGlobMatchersBuilder = {}
 ): String {
   val matchers = PathGlobMatchersImpl().apply(filter)
   return when {
-    isDirectory -> name + "/\n" + buildTreeString(this, matchers = matchers)
-    else        -> name
+    isDirectory() -> name + "/\n" + buildTreeString(this, matchers = matchers)
+    else          -> name
   }
 }
 
 private fun buildTreeString(
-  dir: File,
+  dir: Path,
   margin: String = "",
   matchers: PathGlobMatchers,
 ): String {
   val entries = dir.listDirectoryEntries(matchers)
     .filter {
-      it.isFile || !it.isEmptyDir(matchers)
+      it.isRegularFile() || !it.isEmptyDir(matchers)
     }
 
   return entries.joinToString("\n") { entry ->
@@ -44,7 +39,7 @@ private fun buildTreeString(
     buildString {
       append("$margin${currentPrefix}${entry.name}")
 
-      if (entry.isDirectory) {
+      if (entry.isDirectory()) {
         append("/")
         if (entry.countDirectoryEntries(matchers) > 0) {
           append("\n")
@@ -55,28 +50,22 @@ private fun buildTreeString(
   }
 }
 
-private fun File.listDirectoryEntries(
+private fun Path.listDirectoryEntries(
   matchers: PathGlobMatchers,
-): Sequence<File> =
-  walkTopDown()
-    .maxDepth(1)
-    .filter {
-      if (it.isFile) {
-        matchers.matches(it)
-      } else {
-        it != this@listDirectoryEntries // skip the top directory
-      }
-    }
+): List<Path> =
+  listDirectoryEntries()
+    .filter { matchers.matches(it) }
     .sortedWith(FileSorter)
 
 
-private fun File.isEmptyDir(
+private fun Path.isEmptyDir(
   matchers: PathGlobMatchers
 ): Boolean =
-  isFile || walk().filter { matchers.matches(it) }.none { it.isFile }
+  isRegularFile() ||
+      walk().filter { matchers.matches(it) }.none { it.isRegularFile() }
 
 
-private fun File.countDirectoryEntries(
+private fun Path.countDirectoryEntries(
   filter: PathGlobMatchers
 ): Int =
   listDirectoryEntries(filter).count()
@@ -102,7 +91,7 @@ interface PathGlobMatchers {
   fun include(vararg globPatterns: String)
   fun excludes(vararg globPatterns: String)
   fun matches(path: Path): Boolean
-  fun matches(file: File): Boolean
+  //fun matches(file: File): Boolean
 }
 
 private class PathGlobMatchersImpl : PathGlobMatchers {
@@ -135,8 +124,8 @@ private class PathGlobMatchersImpl : PathGlobMatchers {
       true
     }
 
-  /** @see matches */
-  override fun matches(file: File): Boolean = matches(file.toPath())
+//  /** @see matches */
+//  override fun matches(file: File): Boolean = matches(file.toPath())
 
 }
 
@@ -144,12 +133,12 @@ private class PathGlobMatchersImpl : PathGlobMatchers {
 /**
  * Directories before files, otherwise sort by filename.
  */
-private object FileSorter : Comparator<File> {
-  override fun compare(o1: File, o2: File): Int {
+private object FileSorter : Comparator<Path> {
+  override fun compare(o1: Path, o2: Path): Int {
     return when {
-      o1.isDirectory && o2.isFile -> -1 // directories before files
-      o1.isFile && o2.isDirectory -> +1 // files after directories
-      else                        -> o1.name.compareTo(o2.name)
+      o1.isDirectory() && o2.isRegularFile() -> -1 // directories before files
+      o1.isRegularFile() && o2.isDirectory() -> +1 // files after directories
+      else                                   -> o1.name.compareTo(o2.name)
     }
   }
 }

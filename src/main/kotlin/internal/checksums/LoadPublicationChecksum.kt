@@ -21,6 +21,7 @@ internal abstract class LoadPublicationChecksum : ValueSource<String, LoadPublic
       .resolve(checksumFilename)
       .takeIf(File::exists)
       ?.readText()
+      ?.trim()
   }
 
   internal companion object {

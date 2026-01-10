@@ -1,5 +1,6 @@
 package dev.adamko.gradle.dev_publish.utils
 
+import java.io.File
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -7,8 +8,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.Directory
 import org.gradle.api.file.RelativePath
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.dependencies
@@ -116,19 +116,28 @@ internal fun RelativePath.dropDirectory(): RelativePath =
 
 
 /** Instantiate a new [Attribute] of type [T] */
-internal inline fun <reified T: Any> Attribute(name: String): Attribute<T> =
+internal inline fun <reified T : Any> Attribute(name: String): Attribute<T> =
   Attribute.of(name, T::class.java)
 
 
-internal operator fun <T: Any> AttributeContainer.get(key: Attribute<T>): T? =
+internal operator fun <T : Any> AttributeContainer.get(key: Attribute<T>): T? =
   getAttribute(key)
 
-
-/** Sorted [FileTree] elements. */
-// Sorting is important because FileTrees have unstable sorting, even on the same machine
-internal fun FileTree.sortedElements(): Provider<out Collection<FileSystemLocation>> =
-  elements.map { it.sortedBy(FileSystemLocation::getAsFile) }
-
+/**
+ * Get all files within the given directory, and in any subdirectories.
+ * All files are sorted alphabetically.
+ *
+ * This is useful for registering task inputs,
+ * since Gradle does not support input directories that do not yet exist.
+ */
+internal fun Provider<Directory>.sortedFiles(): Provider<out Set<File>> =
+  map { dir ->
+    dir.asFile
+      .walk()
+      .filter { it.isFile }
+      .sorted()
+      .toSet()
+  }
 
 /** Calls [DefaultTask.onlyIf], but smart-casts the task. */
 @Suppress("FunctionName")

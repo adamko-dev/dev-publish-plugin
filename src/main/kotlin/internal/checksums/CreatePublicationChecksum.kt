@@ -14,23 +14,27 @@ internal abstract class CreatePublicationChecksum : ValueSource<String, CreatePu
   }
 
   override fun obtain(): String? {
+    val identifier = parameters.identifier.get()
+    val artifactsChecksums = artifactsChecksums()
+
+    return buildString {
+      appendLine(identifier)
+      appendLine("---")
+      artifactsChecksums.forEach {
+        appendLine(it)
+      }
+    }.trim()
+  }
+
+  private fun artifactsChecksums(): List<String> {
     val projectDir = parameters.projectDir.get().asFile
 
-    val checksum = parameters.artifacts
+    return parameters.artifacts
       .map { artifact ->
         val artifactPath = artifact.relativeTo(projectDir).invariantSeparatorsPath
         "${artifactPath}$FileChecksumSeparator${artifact.checksum()}"
       }
       .sorted()
-      .joinToString("\n")
-
-    val identifier = parameters.identifier.get()
-
-    return /* language=TEXT */ """
-      |$identifier
-      |---
-      |$checksum
-    """.trimMargin()
   }
 
   internal companion object {

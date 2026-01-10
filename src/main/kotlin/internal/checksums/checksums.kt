@@ -5,19 +5,19 @@ import java.io.InputStream
 import java.io.OutputStream.nullOutputStream
 import java.security.DigestOutputStream
 import java.security.MessageDigest
-import java.util.*
+import kotlin.io.encoding.Base64
 
 internal fun File.checksum(): String =
   if (exists()) inputStream().checksum() else "missing"
 
 private fun InputStream.checksum(): String {
-  val messageDigester = MessageDigest.getInstance("SHA-256")
+  val md = MessageDigest.getInstance("SHA-256")
 
   buffered().use { input ->
-    DigestOutputStream(nullOutputStream(), messageDigester).use { digestStream ->
+    DigestOutputStream(nullOutputStream(), md).use { digestStream ->
       input.copyTo(digestStream)
     }
   }
 
-  return Base64.getEncoder().encodeToString(messageDigester.digest())
+  return Base64.encode(md.digest())
 }

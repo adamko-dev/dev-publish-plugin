@@ -40,6 +40,9 @@ class DevPublishTasksContainer(
         // provider property, so checking via the task name will have to do:
         project.tasks.matching { it.name == "publishAllPublicationsTo${DEV_PUB__MAVEN_REPO_NAME}Repository" }
       )
+
+      // always auto-refresh stored checksums
+      finalizedBy(generatePublicationChecksum)
     }
 
   private fun TaskContainer.registerGeneratePublicationChecksumTask(): TaskProvider<GeneratePublicationDataChecksumTask> =
