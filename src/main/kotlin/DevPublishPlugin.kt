@@ -200,6 +200,10 @@ constructor(
       }
     }
 
+    outputs.cacheIf("do not cache - this task only performs simple file modifications") { _ ->
+      false
+    }
+
     doFirst_("clear staging repo") {
       if (repoIsDevPub.get()) {
         // clear the staging repo so that we can only sync this publication's files in the doLast {} below
