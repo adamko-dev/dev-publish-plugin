@@ -163,12 +163,12 @@ constructor(
     inputs
       // Must convert to FileTree, because the directory might not exist, and
       // Gradle won't accept directories that don't exist as inputs.
-      .files(checksumsStore.asFileTree.sortedElements())
+      .files(checksumsStore.sortedFiles())
       .withPropertyName("devPubChecksumsStoreFiles")
       .withPathSensitivity(RELATIVE)
 
     outputs
-      .files(publicationStore.map { it.asFileTree.sortedElements() })
+      .dir(publicationStore)
       .withPropertyName("devPubPublicationStore")
 
     val currentProjectDir = layout.projectDirectory
