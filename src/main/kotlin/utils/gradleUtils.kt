@@ -116,11 +116,11 @@ internal fun RelativePath.dropDirectory(): RelativePath =
 
 
 /** Instantiate a new [Attribute] of type [T] */
-internal inline fun <reified T: Any> Attribute(name: String): Attribute<T> =
+internal inline fun <reified T : Any> Attribute(name: String): Attribute<T> =
   Attribute.of(name, T::class.java)
 
 
-internal operator fun <T: Any> AttributeContainer.get(key: Attribute<T>): T? =
+internal operator fun <T : Any> AttributeContainer.get(key: Attribute<T>): T? =
   getAttribute(key)
 
 
