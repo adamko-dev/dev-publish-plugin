@@ -3,6 +3,7 @@ package dev.adamko.gradle.dev_publish
 import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import java.nio.file.Path
@@ -133,12 +134,14 @@ class MultipleGradlePluginsTest : FunSpec({
 
               val snapshotVersion = mavenDevDir.toFile().walk()
                 .filter { it.isFile }
-                .firstNotNullOf { file ->
+                .firstNotNullOfOrNull { file ->
                   file.name
                     .substringAfter("multiple-gradle-plugins-8.9.0-", "")
                     .substringBefore(".jar", "")
                     .takeIf(String::isNotBlank)
                 }
+
+              snapshotVersion.shouldNotBeNull()
 
               mavenDevDir.shouldBeMavenDevRepoWithPlugins(
                 version = "8.9.0-$snapshotVersion",
