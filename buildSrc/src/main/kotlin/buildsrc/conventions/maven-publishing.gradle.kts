@@ -87,10 +87,6 @@ signing {
     useInMemoryPgpKeys(keyId, key, password)
   }
 
-  if (!keyId.isNullOrBlank() && !key.isNullOrBlank() && !password.isNullOrBlank()) {
-    useInMemoryPgpKeys(keyId, key, password)
-  }
-
   setRequired({
     signingCredentialsPresent || gradle.taskGraph.allTasks
       .filterIsInstance<PublishToMavenRepository>()
