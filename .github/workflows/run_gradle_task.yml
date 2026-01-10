@@ -73,7 +73,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
-      - name: Run the tests
+      - name: Run Gradle
         run: ./gradlew ${{ inputs.gradle-task }}
         env:
           MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
