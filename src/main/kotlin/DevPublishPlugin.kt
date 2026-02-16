@@ -14,6 +14,7 @@ import dev.adamko.gradle.dev_publish.utils.*
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logging
@@ -186,9 +187,14 @@ constructor(
       )
     }
 
+    inputs.files(publicationData.map { it.gradleModuleMetadata })
+      .withPropertyName("devPubGradleModuleMetadata")
+      .withPathSensitivity(RELATIVE)
+
     val currentChecksum = providers.createPublicationChecksum {
       this.projectDir.set(currentProjectDir)
       this.identifier.set(publicationData.flatMap { it.identifier })
+      this.gradleModuleMetadata.from(publicationData.map { it.gradleModuleMetadata })
     }
 
     val storedChecksum = providers.loadPublicationChecksum {
@@ -264,20 +270,28 @@ constructor(
 
     val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
 
-    val gmm = objects.fileCollection()
-    project.tasks
-      .withType<GenerateModuleMetadata>()
-      .matching { task ->
-        task.name == publication.getGenerateModuleMetadataTaskName()
-      }
-      .all {
-        gmm.from(outputFile)
-      }
+    val gmm = getGmm(project, publication)
 
     return objects.newInstance<PublicationData>(publication.name).apply {
       this.identifier.set(identifier)
       this.gradleModuleMetadata.from(gmm)
     }
+  }
+
+
+  private fun getGmm(
+    project: Project,
+    publication: MavenPublication,
+  ): FileCollection {
+    val gmm = objects.fileCollection()
+    project.tasks
+      .withType<GenerateModuleMetadata>()
+      .all {
+        if (name == publication.getGenerateModuleMetadataTaskName()) {
+          gmm.from(outputFile)
+        }
+      }
+    return gmm
   }
 
   companion object {

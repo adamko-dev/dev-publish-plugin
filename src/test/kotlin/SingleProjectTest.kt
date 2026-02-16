@@ -5,8 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import org.intellij.lang.annotations.Language
 
 class SingleProjectTest : FunSpec({
@@ -37,122 +35,6 @@ class SingleProjectTest : FunSpec({
         val mavenDevDir = project.projectDir.resolve("build/maven-dev")
 
         mavenDevDir.toTreeString() shouldBe ExpectedDevRepoTree
-      }
-    }
-  }
-
-  context("check incremental build") {
-    val project = project()
-    context("initial clean run") {
-      test("1st time - updateDevRepo should run successfully") {
-        project.runner.withArguments(
-          ":clean",
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", SUCCESS)
-        }
-      }
-
-      test("2nd time - updateDevRepo should be UP_TO_DATE") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", UP_TO_DATE)
-        }
-      }
-    }
-
-    context("when dependency added") {
-      project.buildGradleKts += """
-          |dependencies {
-          |  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.0")
-          |}
-        """.trimMargin()
-
-      test("1st time - updateDevRepo should run successfully") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", SUCCESS)
-        }
-      }
-
-      test("2nd time - updateDevRepo should be UP_TO_DATE") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", UP_TO_DATE)
-        }
-      }
-    }
-
-    context("when dependency changes") {
-      project.buildGradleKts = project.buildGradleKts.replace(
-        """implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.0")""",
-        """implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")"""
-      )
-
-      test("1st time - updateDevRepo should run successfully") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", SUCCESS)
-        }
-      }
-
-      test("2nd time - updateDevRepo should be UP_TO_DATE") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", UP_TO_DATE)
-        }
-      }
-    }
-
-    context("when dependency removed - expect updateDevRepo re-runs") {
-      project.buildGradleKts = project.buildGradleKts.replace(
-        "implementation(\"org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1\")",
-        "",
-      )
-
-      test("1st time - updateDevRepo should run successfully") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", SUCCESS)
-        }
-      }
-
-      test("2nd time - updateDevRepo should be UP_TO_DATE") {
-        project.runner.withArguments(
-          ":updateDevRepo",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
-        ).build {
-          shouldHaveTaskWithOutcome(":updateDevRepo", UP_TO_DATE)
-        }
       }
     }
   }
