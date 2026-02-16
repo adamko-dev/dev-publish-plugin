@@ -188,7 +188,6 @@ constructor(
 
     val currentChecksum = providers.createPublicationChecksum {
       this.projectDir.set(currentProjectDir)
-      this.artifacts.from(publicationData.map { it.artifacts })
       this.identifier.set(publicationData.flatMap { it.identifier })
     }
 
@@ -263,13 +262,6 @@ constructor(
       return null
     }
 
-    val artifacts = providers.provider { publication.artifacts }
-      .map { artifacts ->
-        objects.fileCollection()
-          .from(artifacts.map { it.file })
-          .builtBy(artifacts)
-      }
-
     val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
 
     val gmm = objects.fileCollection()
@@ -284,7 +276,6 @@ constructor(
 
     return objects.newInstance<PublicationData>(publication.name).apply {
       this.identifier.set(identifier)
-      this.artifacts.from(artifacts)
       this.gradleModuleMetadata.from(gmm)
     }
   }

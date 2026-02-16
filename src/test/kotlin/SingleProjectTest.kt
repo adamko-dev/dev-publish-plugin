@@ -43,26 +43,28 @@ class SingleProjectTest : FunSpec({
 
   context("check incremental build") {
     val project = project()
-    test("1st time - updateDevRepo should run successfully") {
-      project.runner.withArguments(
-        ":clean",
-        ":updateDevRepo",
-        "--stacktrace",
-        "--configuration-cache",
-        "--build-cache",
-      ).build {
-        shouldHaveTaskWithOutcome(":updateDevRepo", SUCCESS)
+    context("initial clean run") {
+      test("1st time - updateDevRepo should run successfully") {
+        project.runner.withArguments(
+          ":clean",
+          ":updateDevRepo",
+          "--stacktrace",
+          "--configuration-cache",
+          "--build-cache",
+        ).build {
+          shouldHaveTaskWithOutcome(":updateDevRepo", SUCCESS)
+        }
       }
-    }
 
-    test("2nd time - updateDevRepo should be UP_TO_DATE") {
-      project.runner.withArguments(
-        ":updateDevRepo",
-        "--stacktrace",
-        "--configuration-cache",
-        "--build-cache",
-      ).build {
-        shouldHaveTaskWithOutcome(":updateDevRepo", UP_TO_DATE)
+      test("2nd time - updateDevRepo should be UP_TO_DATE") {
+        project.runner.withArguments(
+          ":updateDevRepo",
+          "--stacktrace",
+          "--configuration-cache",
+          "--build-cache",
+        ).build {
+          shouldHaveTaskWithOutcome(":updateDevRepo", UP_TO_DATE)
+        }
       }
     }
 
