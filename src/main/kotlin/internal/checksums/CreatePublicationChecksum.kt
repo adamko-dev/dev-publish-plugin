@@ -11,15 +11,20 @@ internal abstract class CreatePublicationChecksum : ValueSource<String, CreatePu
     val projectDir: DirectoryProperty
     val artifacts: ConfigurableFileCollection
     val identifier: Property<String>
+    val gradleModuleMetadata: ConfigurableFileCollection
   }
 
   override fun obtain(): String? {
     val identifier = parameters.identifier.get()
     val artifactsChecksums = artifactsChecksums()
+    val gradleModuleMetadataChecksums = gradleModuleMetadataChecksums()
 
     return buildString {
       appendLine(identifier)
       appendLine("---")
+      gradleModuleMetadataChecksums.forEach {
+        appendLine(it)
+      }
       artifactsChecksums.forEach {
         appendLine(it)
       }
@@ -33,6 +38,15 @@ internal abstract class CreatePublicationChecksum : ValueSource<String, CreatePu
       .map { artifact ->
         val artifactPath = artifact.relativeTo(projectDir).invariantSeparatorsPath
         "${artifactPath}$FileChecksumSeparator${artifact.checksum()}"
+      }
+      .sorted()
+  }
+
+  private fun gradleModuleMetadataChecksums(): List<String> {
+    return parameters.gradleModuleMetadata
+      .map { gmm ->
+        val gmmPath = gmm.relativeTo(parameters.projectDir.get().asFile).invariantSeparatorsPath
+        "${gmmPath}$FileChecksumSeparator${gmm.checksum()}"
       }
       .sorted()
   }

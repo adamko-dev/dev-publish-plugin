@@ -62,6 +62,7 @@ constructor(
         this.projectDir.set(currentProjectDir)
         this.artifacts.from(data.artifacts)
         this.identifier.set(data.identifier)
+        this.gradleModuleMetadata.from(data.gradleModuleMetadata)
       }.get()
 
       checksumFile.writeText(checksum)

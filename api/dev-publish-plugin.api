@@ -20,6 +20,7 @@ public abstract class dev/adamko/gradle/dev_publish/DevPublishPluginExtension {
 
 public abstract class dev/adamko/gradle/dev_publish/data/PublicationData : org/gradle/api/Named {
 	public abstract fun getArtifacts ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getGradleModuleMetadata ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getIdentifier ()Lorg/gradle/api/provider/Property;
 	public fun getName ()Ljava/lang/String;
 }

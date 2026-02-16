@@ -43,6 +43,10 @@ constructor(
   @get:Input
   abstract val identifier: Property<String>
 
+  @get:InputFiles
+  @get:PathSensitive(RELATIVE)
+  abstract val gradleModuleMetadata: ConfigurableFileCollection
+
   @get:Internal
   internal val checksumFilename: String get() = "$name.txt"
 
