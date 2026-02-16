@@ -54,14 +54,14 @@ constructor(
     val currentProjectDir = layout.projectDirectory
 
     publicationData.forEach { data ->
-      logger.info("Creating publication data checksum for ${data.name} ${data.artifacts.asPath}")
+      logger.info("Creating publication data checksum for ${data.name} ${data.gradleModuleMetadata.asPath}")
 
       val checksumFile = tempDir.resolve(data.checksumFilename)
 
       val checksum = providers.createPublicationChecksum {
         this.projectDir.set(currentProjectDir)
-        this.artifacts.from(data.artifacts)
         this.identifier.set(data.identifier)
+        this.gradleModuleMetadata.from(data.gradleModuleMetadata)
       }.get()
 
       checksumFile.writeText(checksum)

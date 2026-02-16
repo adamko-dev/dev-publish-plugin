@@ -14,6 +14,7 @@ import dev.adamko.gradle.dev_publish.utils.*
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logging
@@ -25,6 +26,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.publish.tasks.GenerateModuleMetadata
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.*
@@ -138,7 +140,12 @@ constructor(
           publicationData.addAllLater(providers.provider {
             publications
               .withType<MavenPublication>()
-              .mapNotNull { createPublicationData(it) }
+              .mapNotNull { publication ->
+                createPublicationData(
+                  project = project,
+                  publication = publication,
+                )
+              }
           })
         }
       }
@@ -173,12 +180,21 @@ constructor(
 
     val currentProjectDir = layout.projectDirectory
 
-    val publicationData = providers.provider { createPublicationData(publication) }
+    val publicationData = providers.provider {
+      createPublicationData(
+        project = project,
+        publication = publication,
+      )
+    }
+
+    inputs.files(publicationData.map { it.gradleModuleMetadata })
+      .withPropertyName("devPubGradleModuleMetadata")
+      .withPathSensitivity(RELATIVE)
 
     val currentChecksum = providers.createPublicationChecksum {
       this.projectDir.set(currentProjectDir)
-      this.artifacts.from(publicationData.map { it.artifacts })
       this.identifier.set(publicationData.flatMap { it.identifier })
+      this.gradleModuleMetadata.from(publicationData.map { it.gradleModuleMetadata })
     }
 
     val storedChecksum = providers.loadPublicationChecksum {
@@ -244,6 +260,7 @@ constructor(
 
   /** Create an instance of [PublicationData] from [publication]. */
   private fun createPublicationData(
+    project: Project,
     publication: MavenPublication?,
   ): PublicationData? {
     if (publication == null) {
@@ -251,18 +268,30 @@ constructor(
       return null
     }
 
-    val artifacts = providers.provider { publication.artifacts }
-      .map { artifacts ->
-        objects.fileCollection()
-          .from(artifacts.map { it.file })
-          .builtBy(artifacts)
-      }
     val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
+
+    val gmm = getGmm(project, publication)
 
     return objects.newInstance<PublicationData>(publication.name).apply {
       this.identifier.set(identifier)
-      this.artifacts.from(artifacts)
+      this.gradleModuleMetadata.from(gmm)
     }
+  }
+
+
+  private fun getGmm(
+    project: Project,
+    publication: MavenPublication,
+  ): FileCollection {
+    val gmm = objects.fileCollection()
+    project.tasks
+      .withType<GenerateModuleMetadata>()
+      .all {
+        if (name == publication.getGenerateModuleMetadataTaskName()) {
+          gmm.from(outputFile)
+        }
+      }
+    return gmm
   }
 
   companion object {
@@ -282,5 +311,8 @@ constructor(
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
 
     private val logger = Logging.getLogger(DevPublishService::class.java)
+
+    private fun MavenPublication.getGenerateModuleMetadataTaskName(): String =
+      "generateMetadataFileFor${name.uppercaseFirstChar()}Publication"
   }
 }

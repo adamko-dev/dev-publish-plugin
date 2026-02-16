@@ -40,8 +40,7 @@ class BuildCacheTest : FunSpec({
           shouldNotHaveRunTask(":updateDevRepo")
         }
 
-        val initialBuildCacheSize =
-          expectedBuildCacheDir.walk().filter { it.isRegularFile() }.sumOf { it.fileSize() }
+        val initialBuildCacheSize = expectedBuildCacheDir.recursiveFileSize()
 
         project.runner
           .withArguments(
@@ -104,9 +103,9 @@ class BuildCacheTest : FunSpec({
         settingsGradleKts += """
           |  
           |buildCache {
-          |    local {
-          |        directory = file("local-cache").toURI()
-          |    }
+          |  local {
+          |    directory = file("local-cache").toURI()
+          |  }
           |}
           |""".trimMargin()
 

@@ -49,27 +49,27 @@ class SingleProjectTest : FunSpec({
       ) {
 
         buildGradleKts = """
-            plugins {
-              kotlin("jvm") version embeddedKotlinVersion
-              id("dev.adamko.dev-publish") version "+"
-              `maven-publish`
-            }
-            
-            group = "foo.project"
-            version = "0.0.1"
-            
-            dependencies {
-              //devPublication(project(":"))        
-            }
-            
-            publishing {
-              publications {
-                create<MavenPublication>("mavenJava") {
-                  from(components["java"])
-                }
-              }
-            }
-        """.trimIndent()
+            |plugins {
+            |  kotlin("jvm") version embeddedKotlinVersion
+            |  id("dev.adamko.dev-publish") version "+"
+            |  `maven-publish`
+            |}
+            |
+            |group = "foo.project"
+            |version = "0.0.1"
+            |
+            |dependencies {
+            |  //devPublication(project(":"))
+            |}
+            |
+            |publishing {
+            |  publications {
+            |    create<MavenPublication>("mavenJava") {
+            |      from(components["java"])
+            |    }
+            |  }
+            |}
+            |""".trimMargin()
       }
 
     @Language("TEXT")

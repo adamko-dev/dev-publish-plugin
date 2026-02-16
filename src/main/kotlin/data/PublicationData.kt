@@ -25,12 +25,27 @@ constructor(
 ) : Named {
 
   /**
-   * The artifacts inside a [MavenPublication].
+   * The Gradle Module Metadata files that describe this publication.
+   *
+   * Typically, there should only be one GMM file, but the Gradle API does not have a stable way to access it.
+   * Therefore, we accept multiple files, in case this assumption will change in the future.
    *
    * @see MavenPublication.getArtifacts
    */
   @get:InputFiles
   @get:PathSensitive(RELATIVE)
+  abstract val gradleModuleMetadata: ConfigurableFileCollection
+
+  /**
+   * The artifacts inside a [MavenPublication].
+   *
+   * This property is no longer used. Instead, the data inside the Gradle Module Metadata files is used.
+   * These files contain all details (including checksums) of the artifacts attached to the publication.
+   *
+   * @see MavenPublication.getArtifacts
+   */
+  @get:Internal
+  @Deprecated("No longer used. Scheduled for removal in version 2.0.0.")
   abstract val artifacts: ConfigurableFileCollection
 
   /**
