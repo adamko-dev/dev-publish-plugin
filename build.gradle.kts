@@ -10,7 +10,7 @@ plugins {
   id("com.gradleup.nmcp.aggregation")
 }
 
-project.version = "1.1.0-SNAPSHOT"
+project.version = "1.1.0"
 project.group = "dev.adamko.gradle"
 
 dependencies {
