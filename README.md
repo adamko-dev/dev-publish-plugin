@@ -11,7 +11,7 @@ that publishes subprojects to a project-local directory, ready for functional te
 * Create a project local repository for testing only your publications
 * Avoid using Maven Local
   (see: [*"you should avoid adding mavenLocal() as a
-  repository"*](https://docs.gradle.org/current/userguide/declaring_repositories.html#sec:case-for-maven-local))
+  repository"*](https://docs.gradle.org/current/userguide/supported_repository_types.html#sec:case-for-maven-local))
 * Perfect for testing Gradle plugins and
   [Gradle Plugin Marker Artifacts](https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers)
   (instead of using [TestKit + `withRuntimeClasspath()`](https://docs.gradle.org/8.0/userguide/test_kit.html#sub:test-kit-automatic-classpath-injection))
