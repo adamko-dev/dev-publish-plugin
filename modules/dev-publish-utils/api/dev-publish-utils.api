@@ -1,0 +1,22 @@
+public final class dev/adamko/gradle/dev_publish/DevPublishTestKit {
+	public static final fun devMavenRepo ()Ljava/nio/file/Path;
+	public static final fun devMavenRepo (Ljava/lang/String;)Ljava/nio/file/Path;
+	public static synthetic fun devMavenRepo$default (Ljava/lang/String;ILjava/lang/Object;)Ljava/nio/file/Path;
+	public static final fun devPublishDependencyResolutionManagement ()Ljava/lang/String;
+	public static final fun devPublishDependencyResolutionManagement (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun devPublishDependencyResolutionManagement (Ljava/nio/file/Path;Z)Ljava/lang/String;
+	public static synthetic fun devPublishDependencyResolutionManagement$default (Ljava/nio/file/Path;ZILjava/lang/Object;)Ljava/lang/String;
+	public static final fun devPublishPluginManagement ()Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;Z)Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;ZZ)Ljava/lang/String;
+	public static synthetic fun devPublishPluginManagement$default (Ljava/nio/file/Path;ZZILjava/lang/Object;)Ljava/lang/String;
+	public static final fun devPublishRepository ()Ljava/lang/String;
+	public static final fun devPublishRepository (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static synthetic fun devPublishRepository$default (Ljava/nio/file/Path;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun devPublishSettings ()Ljava/lang/String;
+	public static final fun devPublishSettings (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun devPublishSettings (Ljava/lang/String;Ljava/nio/file/Path;)Ljava/lang/String;
+	public static synthetic fun devPublishSettings$default (Ljava/lang/String;Ljava/nio/file/Path;ILjava/lang/Object;)Ljava/lang/String;
+}
+

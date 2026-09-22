@@ -7,7 +7,7 @@ import org.gradle.kotlin.dsl.get
 /**
  * Don't publish test fixtures (which causes warnings when publishing)
  *
- * https://docs.gradle.org/current/userguide/java_testing.html#publishing_test_fixtures
+ * https://docs.gradle.org/9.7.1/userguide/java_testing.html#publishing_test_fixtures
  */
 fun Project.skipTestFixturesPublications() {
   val javaComponent = components["java"] as AdhocComponentWithVariants

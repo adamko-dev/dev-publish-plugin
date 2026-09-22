@@ -9,7 +9,7 @@ pluginManagement {
 
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+  repositoriesMode = RepositoriesMode.PREFER_SETTINGS
 
   repositories {
     mavenCentral()
@@ -17,4 +17,9 @@ dependencyResolutionManagement {
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+
+include(
+  ":modules:dev-publish-common",
+  ":modules:dev-publish-plugin",
+  ":modules:dev-publish-utils",
+)

@@ -1,0 +1,502 @@
+@file:Suppress("UnstableApiUsage")
+
+package dev.adamko.gradle.dev_publish
+
+import dev.adamko.gradle.dev_publish.data.DevPubAttributes
+import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
+import dev.adamko.gradle.dev_publish.data.PublicationData
+import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
+import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
+import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
+import dev.adamko.gradle.dev_publish.internal.checksums.LoadPublicationChecksum.Companion.loadPublicationChecksum
+import dev.adamko.gradle.dev_publish.internal.checksums.checksumsToDebugString
+import dev.adamko.gradle.dev_publish.services.DevPublishService
+import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
+import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
+import dev.adamko.gradle.dev_publish.utils.*
+import javax.inject.Inject
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.publish.tasks.GenerateModuleMetadata
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.kotlin.dsl.*
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
+import org.gradle.plugins.signing.Sign
+import org.gradle.plugins.signing.SigningPlugin
+
+/**
+ * Utility plugin for publishing subprojects to a local file-based Maven repository.
+ *
+ * The file-based repo (the location can be obtained from [DevPublishPluginExtension.devMavenRepo]) can be used in
+ * functional tests, for example when using
+ * [Gradle TestKit](https://docs.gradle.org/9.7.1/userguide/test_kit.html).
+ *
+ * This is useful for testing, as Maven metadata and Plugin Marker artifact gets published correctly.
+ */
+class DevPublishPlugin
+@Inject
+@DevPublishInternalApi
+constructor(
+  private val providers: ProviderFactory,
+  private val layout: ProjectLayout,
+  private val fs: FileSystemOperations,
+  private val objects: ObjectFactory,
+) : Plugin<Project> {
+
+  override fun apply(project: Project) {
+    val devPublishDependency = createDevPublishDependency(project)
+
+    val devPubExtension = project.extensions.createDevPublishExtension(devPublishDependency)
+
+    val devPubService = project.gradle.sharedServices.registerDevPubService(project.path)
+
+    val devPubTasks = DevPublishTasksContainer(
+      tasks = project.tasks,
+      devPubExtension = devPubExtension,
+      objects = objects,
+    )
+
+    val devPubAttributes = DevPubAttributes(objects)
+
+    val devPubConfigurations = DevPubConfigurationsContainer(
+      devPubAttributes = devPubAttributes,
+      dependencies = project.dependencies,
+      configurations = project.configurations,
+    )
+
+    devPubTasks.updateDevRepo.configure {
+      // update this project's maven-test-repo with files from other subprojects
+      repositoryContents.from(devPubConfigurations.devMavenPublicationResolver)
+
+      // only used for logging, so users can see which devPublication dependencies were resolved
+      contributors.set(
+        devPubConfigurations.devMavenPublicationResolver.flatMap { resolver ->
+          resolver.incoming
+            .artifacts
+            .resolvedArtifacts
+            .map { artifacts -> artifacts.map { it.id.componentIdentifier.displayName }.sorted() }
+        }
+      )
+    }
+
+    devPubConfigurations.devMavenPublicationApiElements.configure {
+      outgoing {
+        // Only share repos from _this_ subproject, not from the aggregated repo
+        artifact(devPubExtension.publicationsStore) {
+          builtBy(devPubTasks.publishAllToDevRepo)
+        }
+      }
+    }
+
+    configureDevMavenRepoMetadata(
+      project = project,
+      devPubExtension = devPubExtension,
+      devPubTasks = devPubTasks,
+      devPubConfigurations = devPubConfigurations,
+    )
+
+    configureMavenPublishingPlugin(
+      project = project,
+      devPubExtension = devPubExtension,
+      devPubTasks = devPubTasks,
+    )
+
+    configureBasePlugin(
+      project = project,
+      devPubTasks = devPubTasks,
+    )
+
+    configureSigningPlugin(
+      project = project,
+      devPubExtension = devPubExtension,
+    )
+
+    project.tasks.withType<PublishToMavenRepository>().configureEach {
+      if (name.endsWith("To${DEV_PUB__MAVEN_REPO_NAME}Repository")) {
+        configurePublishToMavenRepositoryTask(devPubExtension, devPubService)
+      }
+    }
+  }
+
+  private fun ExtensionContainer.createDevPublishExtension(
+    devPublishDependency: Provider<Dependency>,
+  ): DevPublishPluginExtension {
+    return create<DevPublishPluginExtension>(DEV_PUB__EXTENSION_NAME).apply {
+      devMavenRepo.convention(layout.buildDirectory.dir(DEV_PUB__MAVEN_REPO_DIR))
+
+      signDevPublications.convention(false)
+
+      val tmpDir = layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/")
+
+      devMavenRepoMetadataDir.convention(tmpDir.map { it.dir("metadata") })
+
+      stagingDevMavenRepo.convention(tmpDir.map { it.dir("staging") })
+      checksumsStore.convention(tmpDir.map { it.dir("checksum-store") })
+      publicationsStore.convention(tmpDir.map { it.dir("publications-store") })
+
+      dependency.convention(devPublishDependency)
+    }
+  }
+
+  /**
+   * Register a server per subproject, to prevent parallel publications into the same
+   * [DevPublishPluginExtension.stagingDevMavenRepo].
+   */
+  private fun BuildServiceRegistry.registerDevPubService(
+    projectPath: String
+  ): Provider<DevPublishService> =
+    registerIfAbsent("${SERVICE_NAME}_$projectPath", DevPublishService::class) {
+      maxParallelUsages.set(1)
+    }
+
+  /**
+   * Record the dev repo location in a generated properties file, and expose that file - together
+   * with the `dev-publish-utils` helper library - through a consumable Configuration, so a single
+   * dependency declaration wires up everything a test source set needs:
+   *
+   * ```kotlin
+   * dependencies {
+   *   testImplementation(devPublish.dependency())
+   * }
+   * ```
+   *
+   * A [ProjectDependency] is used because it carries both the `updateDevRepo` task dependency and
+   * `dev-publish-utils` transitively.
+   */
+  private fun configureDevMavenRepoMetadata(
+    project: Project,
+    devPubExtension: DevPublishPluginExtension,
+    devPubTasks: DevPublishTasksContainer,
+    devPubConfigurations: DevPubConfigurationsContainer,
+  ) {
+    devPubConfigurations.devPublishElements.configure {
+      outgoing {
+        artifact(devPubExtension.devMavenRepoMetadataDir) {
+          builtBy(devPubTasks.generateDevPublishMetadata)
+        }
+        // Distinguishes this from `runtimeElements`.
+        // Without this, the TargetJvmVersion attribute is required, and it's impossible to guess the required value.
+        capability(
+          devPublishCapabilityNotation(project.groupProvider, project.name).map { notation ->
+            "$notation:$DevPublishVersion"
+          }
+        )
+      }
+    }
+  }
+
+  /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks. */
+  private fun configureMavenPublishingPlugin(
+    project: Project,
+    devPubExtension: DevPublishPluginExtension,
+    devPubTasks: DevPublishTasksContainer,
+  ) {
+    project.plugins.withType<MavenPublishPlugin>().configureEach {
+      project.extensions.configure<PublishingExtension> {
+        repositories.maven(devPubExtension.stagingDevMavenRepo) {
+          name = DEV_PUB__MAVEN_REPO_NAME
+        }
+
+        devPubTasks.generatePublicationChecksum.configure {
+          publicationData.addAllLater(providers.provider {
+            publications
+              .withType<MavenPublication>()
+              .mapNotNull { publication ->
+                createPublicationData(
+                  project = project,
+                  publication = publication,
+                )
+              }
+          })
+        }
+      }
+    }
+  }
+
+  private fun PublishToMavenRepository.configurePublishToMavenRepositoryTask(
+    devPubExtension: DevPublishPluginExtension,
+    devPubService: Provider<DevPublishService>,
+  ) {
+    // register the service to ensure multiple PublishToMavenRepository tasks don't run in parallel
+    usesService(devPubService)
+
+    val stagingDevMavenRepo = devPubExtension.stagingDevMavenRepo
+    val publicationStore = devPubExtension.publicationsStore.dir(this@configurePublishToMavenRepositoryTask.name)
+    val checksumsStore = devPubExtension.checksumsStore
+
+    // need to determine the repo lazily because the repo isn't set immediately
+    val repoIsDevPub = providers.provider { repository?.name == DEV_PUB__MAVEN_REPO_NAME }.orElse(false)
+    inputs.property("repoIsDevPub", repoIsDevPub)
+
+    inputs
+      // Must convert to FileTree, because the directory might not exist, and
+      // Gradle won't accept directories that don't exist as inputs.
+      .files(checksumsStore.asFileTree)
+      .withPropertyName("devPubChecksumsStoreFiles")
+      .withPathSensitivity(RELATIVE)
+
+    outputs
+      .dir(publicationStore)
+      .withPropertyName("devPubPublicationStore")
+
+    val currentProjectDir = layout.projectDirectory
+
+    val publicationData = providers.provider {
+      createPublicationData(
+        project = project,
+        publication = publication,
+      )
+    }
+
+    inputs.files(publicationData.map { it.gradleModuleMetadata })
+      .withPropertyName("devPubGradleModuleMetadata")
+      .withPathSensitivity(RELATIVE)
+
+    val currentChecksum = providers.createPublicationChecksum {
+      this.projectDir.set(currentProjectDir)
+      this.identifier.set(publicationData.flatMap { it.identifier })
+      this.gradleModuleMetadata.from(publicationData.map { it.gradleModuleMetadata })
+    }
+
+    val storedChecksum = providers.loadPublicationChecksum {
+      this.checksumFilename.set(publicationData.map { it.checksumFilename })
+      this.checksumsStore.set(checksumsStore)
+    }
+
+    onlyIf_("the publication changed since it was last published to the dev repo") {
+      if (!repoIsDevPub.get()) {
+        true
+      } else {
+        val enabled = currentChecksum.orNull != storedChecksum.orNull
+        logger.info {
+          val checksums = checksumsToDebugString(currentChecksum, storedChecksum).prependIndent("  ")
+          val match = if (!enabled) "match" else "do not match"
+          "[$path] currentChecksum and storedChecksum $match\n${checksums}"
+        }
+        enabled
+      }
+    }
+
+    outputs.doNotCacheIf("this task only performs simple file modifications") { true }
+
+    doFirst_("clear staging repo") {
+      if (repoIsDevPub.get()) {
+        // so the doLast below syncs only this publication's files
+        fs.delete { delete(stagingDevMavenRepo) }
+        stagingDevMavenRepo.get().asFile.mkdirs()
+      }
+    }
+
+    doLast_("sync staging repo to publication store") {
+      if (repoIsDevPub.get()) {
+        logger.info { ("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}") }
+        fs.sync {
+          from(stagingDevMavenRepo)
+          into(publicationStore)
+        }
+
+        logger.info("[$path] clearing staging-dev-maven-repo after publication")
+        fs.delete { delete(stagingDevMavenRepo) }
+        stagingDevMavenRepo.get().asFile.mkdirs()
+      }
+    }
+  }
+
+  /**
+   * React to the [SigningPlugin], and skip signing in builds that only publish to the dev repo.
+   *
+   * Signatures are attached to a publication, not a repository, so disabling the [Sign] task is the
+   * only way to leave them out of the dev repo.
+   *
+   * @see DevPublishPluginExtension.signDevPublications
+   */
+  private fun configureSigningPlugin(
+    project: Project,
+    devPubExtension: DevPublishPluginExtension,
+  ) {
+    project.plugins.withType<SigningPlugin>().configureEach {
+      val signDevPublications = devPubExtension.signDevPublications
+      val publishesOutsideDevRepo = project.publishesOutsideDevRepo()
+
+      project.tasks.withType<Sign>().configureEach {
+        onlyIf_("this build only publishes to $DEV_PUB__MAVEN_REPO_NAME") {
+          signDevPublications.get() || publishesOutsideDevRepo.get()
+        }
+      }
+    }
+  }
+
+  /**
+   * `true` if this project has a task in the graph that publishes somewhere other than the
+   * DevPublish Maven repository.
+   *
+   * Only this project's own tasks are considered, because a [Sign] task and the publications it
+   * signs belong to the same project. Defaults to `true`, so signing is never skipped by accident.
+   */
+  private fun Project.publishesOutsideDevRepo(): Provider<Boolean> {
+    val publishesOutsideDevRepo = objects.property<Boolean>().convention(true)
+
+    val devRepoSuffix = "To${DEV_PUB__MAVEN_REPO_NAME}Repository"
+
+    val publishesOutside = tasks
+      .withType<AbstractPublishToMaven>()
+      .matching { task ->
+        when (task) {
+          is PublishToMavenLocal -> true
+          is PublishToMavenRepository -> !task.name.endsWith(devRepoSuffix)
+          else -> false
+        }
+      }
+
+    gradle.taskGraph.whenReady {
+      publishesOutsideDevRepo.set(publishesOutside.any { hasTask(it) })
+    }
+
+    publishesOutsideDevRepo.finalizeValueOnRead()
+
+    return publishesOutsideDevRepo
+  }
+
+  /** React to [LifecycleBasePlugin], and configure the appropriate tasks */
+  private fun configureBasePlugin(
+    project: Project,
+    devPubTasks: DevPublishTasksContainer,
+  ) {
+    project.plugins.withType<LifecycleBasePlugin>().configureEach {
+      project.tasks.named(CHECK_TASK_NAME).configure {
+        mustRunAfter(devPubTasks.publishAllToDevRepo)
+        mustRunAfter(devPubTasks.generatePublicationChecksum)
+        mustRunAfter(devPubTasks.updateDevRepo)
+      }
+    }
+  }
+
+  /** Create an instance of [PublicationData] from [publication]. */
+  private fun createPublicationData(
+    project: Project,
+    publication: MavenPublication?,
+  ): PublicationData? {
+    if (publication == null) {
+      logger.warn("cannot create PublicationData - MavenPublication is null")
+      return null
+    }
+
+    val identifier = providers.provider { publication.run { "$groupId:$artifactId:$version" } }
+
+    val gmm = getGmm(project, publication)
+
+    return objects.newInstance<PublicationData>(publication.name).apply {
+      this.identifier.set(identifier)
+      this.gradleModuleMetadata.from(gmm)
+    }
+  }
+
+  private fun getGmm(
+    project: Project,
+    publication: MavenPublication,
+  ): FileCollection {
+    val gmm = objects.fileCollection()
+    project.tasks
+      .withType<GenerateModuleMetadata>()
+      .all {
+        if (name == publication.getGenerateModuleMetadataTaskName()) {
+          gmm.from(outputFile)
+        }
+      }
+    return gmm
+  }
+
+  companion object {
+    const val DEV_PUB__EXTENSION_NAME = "devPublish"
+
+    /**
+     * Name of the [org.gradle.api.artifacts.repositories.MavenArtifactRepository]
+     * used for publishing test publications.
+     */
+    const val DEV_PUB__MAVEN_REPO_NAME = "DevPublishMaven"
+
+    const val DEV_PUB__MAVEN_REPO_DIR = "maven-dev"
+
+    /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency]. */
+    const val DEV_PUB__ELEMENTS_CONFIGURATION = "devPublishElements"
+
+    /** Group of the capability that identifies [DEV_PUB__ELEMENTS_CONFIGURATION]. */
+    const val DEV_PUB__CAPABILITY_GROUP = "dev.adamko.dev-publish"
+
+    /** Coordinates of the helper library that [DevPublishPluginExtension.dependency] brings in. */
+    const val DEV_PUB__UTILS_GROUP = "dev.adamko.gradle"
+
+    /** @see DEV_PUB__UTILS_GROUP */
+    const val DEV_PUB__UTILS_MODULE = "dev-publish-utils"
+
+    @DevPublishInternalApi
+    internal const val DEV_PUB__UTILS_CONFIGURATION = "devPublishUtils"
+
+    /**
+     * Coordinates of the capability that distinguishes [DEV_PUB__ELEMENTS_CONFIGURATION] from the
+     * project's other variants.
+     *
+     * Derived from the project's own coordinates, which are already required to be unique.
+     */
+    internal fun devPublishCapabilityNotation(group: Provider<String>, name: String): Provider<String> =
+      group.map { group ->
+        buildString {
+          append(DEV_PUB__CAPABILITY_GROUP)
+          if (group.isNotEmpty()) {
+            append(".")
+            append(group)
+          }
+          append(":")
+          append(name)
+          append("-dev-publish")
+        }
+      }
+
+    const val DEV_PUB__PUBLICATION_DEPENDENCIES = "devPublication"
+    const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
+    const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
+    const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
+
+    private val logger: Logger = Logging.getLogger(DevPublishPlugin::class.java)
+
+
+    /**
+     * The [ProjectDependency] handed to users as [DevPublishPluginExtension.dependency].
+     *
+     * Targets [DEV_PUB__ELEMENTS_CONFIGURATION] of this same project, selected by capability
+     * because `runtimeElements` matches the same attributes and would otherwise be ambiguous.
+     */
+    private fun createDevPublishDependency(project: Project): Provider<Dependency> {
+      return devPublishCapabilityNotation(group = project.groupProvider, name = project.name).map { capability ->
+        createProjectDependency(project).apply {
+          capabilities {
+            requireCapability(capability)
+          }
+          because("the DevPublish dev Maven repository, and the dev-publish-utils library that reads it")
+        }
+      }
+    }
+
+    private fun MavenPublication.getGenerateModuleMetadataTaskName(): String =
+      "generateMetadataFileFor${name.uppercaseFirstChar()}Publication"
+  }
+}
