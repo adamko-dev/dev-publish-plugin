@@ -3,7 +3,7 @@
 junit = "6.0.2"
 kotest = "6.1.0"
 
-gradlePlugin-pluginPublishPlugin = "2.0.0"
+gradlePlugin-pluginPublishPlugin = "2.2.1"
 gradlePlugin-nmcp = "1.4.3"
 
 [libraries]

@@ -1,5 +1,6 @@
 import buildsrc.utils.excludeProjectConfigurationDirs
 import buildsrc.utils.skipTestFixturesPublications
+import org.gradle.plugin.compatibility.compatibility
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -53,6 +54,12 @@ gradlePlugin {
       "integration-test",
       "publication",
     )
+    compatibility {
+      features {
+        isolatedProjects = true
+        configurationCache = true
+      }
+    }
   }
 }
 
