@@ -24,14 +24,8 @@ kotlin {
   jvmToolchain(17)
   @OptIn(ExperimentalAbiValidation::class)
   abiValidation {
-    enabled = true
-    variants.configureEach {
-      tasks.check {
-        dependsOn(legacyDump.legacyCheckTaskProvider)
-      }
-    }
     filters {
-      excluded {
+      exclude {
         annotatedWith.add("dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi")
       }
     }
