@@ -180,7 +180,7 @@ constructor(
           name = DEV_PUB__MAVEN_REPO_NAME
         }
 
-        devPubTasks.generatePublicationChecksum.configure {
+        devPubTasks.generateDevPublishChecksums.configure {
           publicationData.addAllLater(providers.provider {
             publications
               .withType<MavenPublication>()
@@ -296,7 +296,7 @@ constructor(
     project.plugins.withType<LifecycleBasePlugin>().configureEach {
       project.tasks.named(CHECK_TASK_NAME).configure {
         mustRunAfter(devPubTasks.publishAllToDevRepo)
-        mustRunAfter(devPubTasks.generatePublicationChecksum)
+        mustRunAfter(devPubTasks.generateDevPublishChecksums)
         mustRunAfter(devPubTasks.updateDevRepo)
       }
     }

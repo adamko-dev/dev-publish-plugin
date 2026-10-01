@@ -1,5 +1,6 @@
 package dev.adamko.gradle.dev_publish.utils
 
+import dev.adamko.gradle.dev_publish.internal.deprecatedTaskProblemId
 import java.io.File
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -11,8 +12,14 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RelativePath
+import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GradleVersion
 
 
@@ -120,3 +127,28 @@ internal fun createProjectDependency(project: Project): ProjectDependency {
 
 internal val Project.groupProvider: Provider<String>
   get() = providers.provider { group.toString() }
+
+@Suppress("UnstableApiUsage")
+internal inline fun <reified T : Task> TaskContainer.registerDeprecatedTask(
+  deprecatedName: String,
+  replacementName: String,
+): TaskProvider<T> {
+  return register<T>(deprecatedName) {
+    description = "Deprecated. Use `$replacementName` instead."
+    group = null // hide the deprecated task from `gradle tasks`
+
+    dependsOn(replacementName)
+
+    val problems = project.serviceOf<Problems>()
+
+    val projectDisplayName = project.displayName
+
+    doLast {
+      problems.reporter.report(deprecatedTaskProblemId) {
+        contextualLabel("Task '$path' is deprecated")
+        details("Task '$name', in $projectDisplayName, was renamed to '$replacementName'.")
+        solution("Use '$replacementName' instead of '$name'.")
+      }
+    }
+  }
+}
