@@ -18,6 +18,10 @@ on:
         description: "The branch, tag or SHA to checkout. See actions/checkout 'ref'."
         required: false
         type: string
+      label:
+        description: "Short name for this call, so each caller's build reports get their own artifact"
+        required: false
+        type: string
   workflow_call:
     inputs:
       gradle-task:
@@ -30,6 +34,10 @@ on:
         type: string
       checkout-ref:
         description: "The branch, tag or SHA to checkout. See actions/checkout 'ref'."
+        required: false
+        type: string
+      label:
+        description: "Short name for this call, so each caller's build reports get their own artifact"
         required: false
         type: string
 
@@ -74,6 +82,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Run Gradle
+        shell: bash
         run: ./gradlew ${{ inputs.gradle-task }}
         env:
           MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
@@ -89,7 +98,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v6
         with:
-          name: build-report-${{ runner.os }}${{ github.action }}
+          name: build-report-${{ runner.os }}-${{ inputs.label || 'gradle' }}
           path: |
             **/build/reports/
             **/*.hprof
