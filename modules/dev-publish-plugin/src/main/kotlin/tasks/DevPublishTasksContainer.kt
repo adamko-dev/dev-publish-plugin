@@ -27,6 +27,10 @@ class DevPublishTasksContainer(
   val updateDevRepo: TaskProvider<UpdateDevRepoTask> =
     tasks.registerUpdateDevRepoTask()
 
+  /** Writes the dev repo location into a file, for putting on a test runtime classpath. */
+  val generateDevPublishMetadata: TaskProvider<GenerateDevPublishMetadataTask> =
+    tasks.registerGenerateDevPublishMetadataTask()
+
   private fun TaskContainer.registerPublishAllToDevRepoTask(): TaskProvider<BaseDevPublishTask> =
     register<BaseDevPublishTask>(PUBLISH_ALL_TO_DEV_REPO_TASK_NAME) {
       description = "Publishes all Maven publications to the dev Maven repository. " +
@@ -53,6 +57,18 @@ class DevPublishTasksContainer(
       tempDir.convention(objects.directoryProperty().fileValue(temporaryDir))
     }
 
+  private fun TaskContainer.registerGenerateDevPublishMetadataTask(): TaskProvider<GenerateDevPublishMetadataTask> =
+    register<GenerateDevPublishMetadataTask>(GENERATE_DEV_PUBLISH_METADATA_TASK_NAME) {
+      description = "Writes the dev Maven repository location into a properties file, " +
+          "so it can be read from a test runtime classpath. " +
+          "This is an internal task that should not typically be manually referenced or called."
+
+      outputDirectory.convention(devPubExtension.devMavenRepoMetadataDir)
+      devMavenRepo.convention(updateDevRepo.flatMap { it.devRepo })
+      @Suppress("UnstableApiUsage")
+      rootProjectDir.convention(project.isolated.rootProject.projectDirectory)
+    }
+
   private fun TaskContainer.registerUpdateDevRepoTask(): TaskProvider<UpdateDevRepoTask> =
     register<UpdateDevRepoTask>(UPDATE_DEV_REPO_TASK_NAME) {
       description = "Updates the dev-repo"
@@ -69,6 +85,7 @@ class DevPublishTasksContainer(
   companion object {
     const val PUBLISH_ALL_TO_DEV_REPO_TASK_NAME = "publishAllToDevRepo"
     const val UPDATE_DEV_REPO_TASK_NAME = "updateDevRepo"
+    const val GENERATE_DEV_PUBLISH_METADATA_TASK_NAME = "generateDevPublishMetadata"
     const val GENERATE_PUBLICATION_CHECKSUM_TASK = "generatePublicationHashTask"
   }
 }

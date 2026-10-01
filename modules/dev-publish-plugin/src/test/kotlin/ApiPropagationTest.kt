@@ -23,7 +23,6 @@ class ApiPropagationTest : FunSpec({
           output shouldContain "SUCCESSFUL"
         }
     }
-
     test("api dependencies are propagated") {
       project.runner.withArguments(
         ":project-aggregate:updateDevRepo",

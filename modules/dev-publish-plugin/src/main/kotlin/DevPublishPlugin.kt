@@ -4,6 +4,7 @@ import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
+import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
 import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.internal.checksums.LoadPublicationChecksum.Companion.loadPublicationChecksum
 import dev.adamko.gradle.dev_publish.internal.checksums.checksumsToDebugString
@@ -14,6 +15,8 @@ import dev.adamko.gradle.dev_publish.utils.*
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
@@ -53,7 +56,9 @@ constructor(
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
-    val devPubExtension = project.extensions.createDevPublishExtension()
+    val devPublishDependency = createDevPublishDependency(project)
+
+    val devPubExtension = project.extensions.createDevPublishExtension(devPublishDependency)
 
     val devPubService = project.gradle.sharedServices.registerDevPubService(project.path)
 
@@ -85,6 +90,13 @@ constructor(
       }
     }
 
+    configureDevMavenRepoMetadata(
+      project = project,
+      devPubExtension = devPubExtension,
+      devPubTasks = devPubTasks,
+      devPubConfigurations = devPubConfigurations,
+    )
+
     configureMavenPublishingPlugin(
       project = project,
       devPubExtension = devPubExtension,
@@ -103,15 +115,19 @@ constructor(
     }
   }
 
-  private fun ExtensionContainer.createDevPublishExtension(): DevPublishPluginExtension {
+  private fun ExtensionContainer.createDevPublishExtension(
+    devPublishDependency: Provider<Dependency>,
+  ): DevPublishPluginExtension {
     return create<DevPublishPluginExtension>(DEV_PUB__EXTENSION_NAME).apply {
       devMavenRepo.convention(layout.buildDirectory.dir(DEV_PUB__MAVEN_REPO_DIR))
 
       val tmpDir = layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/")
 
+      devMavenRepoMetadataDir.convention(tmpDir.map { it.dir("metadata") })
       stagingDevMavenRepo.convention(tmpDir.map { it.dir("staging") })
       checksumsStore.convention(tmpDir.map { it.dir("checksum-store") })
       publicationsStore.convention(tmpDir.map { it.dir("publications-store") })
+      dependency.convention(devPublishDependency)
     }
   }
 
@@ -125,6 +141,32 @@ constructor(
     registerIfAbsent("${SERVICE_NAME}_$projectPath", DevPublishService::class) {
       maxParallelUsages.set(1)
     }
+
+  /**
+   * Expose the generated metadata file, and `dev-publish-utils`, through a consumable
+   * Configuration, so [DevPublishPluginExtension.dependency] wires up a test source set on its own.
+   */
+  private fun configureDevMavenRepoMetadata(
+    project: Project,
+    devPubExtension: DevPublishPluginExtension,
+    devPubTasks: DevPublishTasksContainer,
+    devPubConfigurations: DevPubConfigurationsContainer,
+  ) {
+    devPubConfigurations.devPublishElements.configure {
+      outgoing {
+        artifact(devPubExtension.devMavenRepoMetadataDir) {
+          builtBy(devPubTasks.generateDevPublishMetadata)
+        }
+        // Distinguishes this from `runtimeElements`.
+        // Without this, the TargetJvmVersion attribute is required, and it's impossible to guess the required value.
+        capability(
+          devPublishCapabilityNotation(project.groupProvider, project.name).map { notation ->
+            "$notation:$DevPublishVersion"
+          }
+        )
+      }
+    }
+  }
 
   /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks. */
   private fun configureMavenPublishingPlugin(
@@ -307,12 +349,63 @@ constructor(
 
     const val DEV_PUB__MAVEN_REPO_DIR = "maven-dev"
 
+    /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency]. */
+    internal const val DEV_PUB__ELEMENTS_CONFIGURATION = "devPublishElements"
+
+    /** Group of the capability that identifies [DEV_PUB__ELEMENTS_CONFIGURATION]. */
+    internal const val DEV_PUB__CAPABILITY_GROUP = "dev.adamko.dev-publish"
+
+    /** Coordinates of the helper library that [DevPublishPluginExtension.dependency] brings in. */
+    internal const val DEV_PUB__UTILS_GROUP = "dev.adamko.gradle"
+
+    /** @see DEV_PUB__UTILS_GROUP */
+    internal const val DEV_PUB__UTILS_MODULE = "dev-publish-utils"
+
+    internal const val DEV_PUB__UTILS_CONFIGURATION = "devPublishUtils"
+
     const val DEV_PUB__PUBLICATION_DEPENDENCIES = "devPublication"
     const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
     const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
 
     private val logger = Logging.getLogger(DevPublishService::class.java)
+
+    /**
+     * The [ProjectDependency] handed to users as [DevPublishPluginExtension.dependency].
+     *
+     * Targets [DEV_PUB__ELEMENTS_CONFIGURATION] of this same project, selected by capability
+     * because `runtimeElements` matches the same attributes and would otherwise be ambiguous.
+     */
+    private fun createDevPublishDependency(project: Project): Provider<Dependency> {
+      return devPublishCapabilityNotation(group = project.groupProvider, name = project.name).map { capability ->
+        createProjectDependency(project).apply {
+          capabilities {
+            requireCapability(capability)
+          }
+          because("the DevPublish dev Maven repository, and the dev-publish-utils library that reads it")
+        }
+      }
+    }
+
+    /**
+     * Coordinates of the capability that distinguishes [DEV_PUB__ELEMENTS_CONFIGURATION] from the
+     * project's other variants.
+     *
+     * Derived from the project's own coordinates, which are already required to be unique.
+     */
+    internal fun devPublishCapabilityNotation(group: Provider<String>, name: String): Provider<String> =
+      group.map { group ->
+        buildString {
+          append(DEV_PUB__CAPABILITY_GROUP)
+          if (group.isNotEmpty()) {
+            append(".")
+            append(group)
+          }
+          append(":")
+          append(name)
+          append("-dev-publish")
+        }
+      }
 
     private fun MavenPublication.getGenerateModuleMetadataTaskName(): String =
       "generateMetadataFileFor${name.uppercaseFirstChar()}Publication"
