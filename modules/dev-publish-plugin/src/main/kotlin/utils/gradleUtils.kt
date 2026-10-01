@@ -3,8 +3,10 @@ package dev.adamko.gradle.dev_publish.utils
 import java.io.File
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.Directory
@@ -82,7 +84,6 @@ internal inline fun <reified T : Task> T.doFirst_(
   }
 }
 
-
 /** Calls [Task.doLast], but smart-casts the task. */
 @Suppress("FunctionName")
 internal inline fun <reified T : Task> T.doLast_(
@@ -104,3 +105,18 @@ internal fun Configuration.extendsFrom_(configuration: Provider<out Configuratio
     extendsFrom(configuration.get())
   }
 }
+
+/**
+ * Create a [ProjectDependency] for [project].
+ */
+internal fun createProjectDependency(project: Project): ProjectDependency {
+  return if (CurrentGradleVersion >= "9.5.0") {
+    project.dependencies.project()
+  } else {
+    project.dependencies.create(project) as? ProjectDependency
+      ?: error("Failed to create project dependency for project ${project.path}. Current Gradle version: $CurrentGradleVersion")
+  }
+}
+
+internal val Project.groupProvider: Provider<String>
+  get() = providers.provider { group.toString() }

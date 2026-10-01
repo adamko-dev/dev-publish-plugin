@@ -4,6 +4,14 @@ plugins {
 
 description = "Helpers for reading the DevPublish dev Maven repository from a test JVM."
 
+publishing {
+  repositories {
+    maven(isolated.rootProject.projectDirectory.dir("build/test-maven-repo")) {
+      name = "TestMavenRepo"
+    }
+  }
+}
+
 dependencies {
   implementation(projects.modules.devPublishCommon)
 

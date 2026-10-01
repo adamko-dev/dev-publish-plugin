@@ -45,31 +45,37 @@ class GradleProjectTest(
         .invariantSeparatorsPath
 
     val settingRepositories: String
-      get() = """
-        |pluginManagement {
-        |  repositories {
-        |    exclusiveContent {
-        |      forRepository {
-        |        maven(file("$testMavenRepoPathString")) {
-        |          name = "MavenDevRepo"
-        |        }
-        |      }
-        |      filter { 
-        |        includeGroup("dev.adamko.dev-publish")
-        |        includeGroup("dev.adamko.gradle")
-        |      }
-        |    }
-        |    mavenCentral()
-        |    gradlePluginPortal()
-        |  }
-        |}
-        |
-        |dependencyResolutionManagement {
-        |  repositories {
-        |    mavenCentral()
-        |  }
-        |}
-        """.trimMargin()
+      get() {
+        val devMavenRepo = """
+              |exclusiveContent {
+              |  forRepository {
+              |    maven(file("$testMavenRepoPathString")) {
+              |      name = "MavenDevRepo"
+              |    }
+              |  }
+              |  filter { 
+              |    includeGroup("dev.adamko.dev-publish")
+              |    includeGroup("dev.adamko.gradle")
+              |  }
+              |}
+              |""".trimMargin().prependIndent("    ")
+        return """
+              |pluginManagement {
+              |  repositories {
+              |${devMavenRepo}
+              |    mavenCentral()
+              |    gradlePluginPortal()
+              |  }
+              |}
+              |
+              |dependencyResolutionManagement {
+              |  repositories {
+              |${devMavenRepo}
+              |    mavenCentral()
+              |  }
+              |}
+              """.trimMargin()
+      }
 
     val projectTestTempDir: Path by systemProperty(Paths::get)
 
@@ -179,7 +185,6 @@ fun ProjectDirectoryScope.createFile(filePath: String, contents: String): File =
   }
 
 
-@ProjectDirectoryDsl
 fun ProjectDirectoryScope.dir(
   path: String,
   block: ProjectDirectoryScope.() -> Unit = {},
@@ -187,7 +192,6 @@ fun ProjectDirectoryScope.dir(
   ProjectDirectoryScopeImpl(projectDir.resolve(path)).apply(block)
 
 
-@ProjectDirectoryDsl
 fun ProjectDirectoryScope.file(
   path: String
 ): Path = projectDir.resolve(path)
@@ -213,4 +217,7 @@ fun ProjectDirectoryScope.createKotlinFile(filePath: String, @Language("kotlin")
 
 
 fun ProjectDirectoryScope.createKtsFile(filePath: String, @Language("kts") contents: String) =
+  createFile(filePath, contents)
+
+fun ProjectDirectoryScope.createJavaFile(filePath: String, @Language("java") contents: String) =
   createFile(filePath, contents)
