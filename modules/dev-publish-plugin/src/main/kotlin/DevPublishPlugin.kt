@@ -214,7 +214,7 @@ constructor(
     inputs
       // Must convert to FileTree, because the directory might not exist, and
       // Gradle won't accept directories that don't exist as inputs.
-      .files(checksumsStore.sortedFiles())
+      .files(checksumsStore.asFileTree)
       .withPropertyName("devPubChecksumsStoreFiles")
       .withPathSensitivity(RELATIVE)
 

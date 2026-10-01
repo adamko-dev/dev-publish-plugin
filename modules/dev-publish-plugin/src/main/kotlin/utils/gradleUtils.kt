@@ -51,22 +51,6 @@ internal inline fun <reified T : Any> Attribute(name: String): Attribute<T> =
 internal operator fun <T : Any> AttributeContainer.get(key: Attribute<T>): T? =
   getAttribute(key)
 
-/**
- * Get all files within the given directory, and in any subdirectories.
- * All files are sorted alphabetically.
- *
- * This is useful for registering task inputs,
- * since Gradle does not support input directories that do not yet exist.
- */
-internal fun Provider<Directory>.sortedFiles(): Provider<out Set<File>> =
-  map { dir ->
-    dir.asFile
-      .walk()
-      .filter { it.isFile }
-      .sorted()
-      .toSet()
-  }
-
 /** Calls [DefaultTask.onlyIf], but smart-casts the task. */
 @Suppress("FunctionName")
 internal inline fun <reified T : DefaultTask> T.onlyIf_(
