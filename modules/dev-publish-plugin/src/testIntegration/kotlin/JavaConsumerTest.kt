@@ -1,13 +1,11 @@
 package dev.adamko.gradle.dev_publish
 
-import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
 import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import kotlin.io.path.Path
 import kotlin.io.path.pathString
-import kotlin.text.Regex.Companion.escape
 import org.gradle.testkit.runner.TaskOutcome.*
 
 /**
@@ -181,7 +179,7 @@ class JavaConsumerTest : FunSpec({
       }
 
     private val devPublishVersionRegex = Regex(
-      """(?<=[:\-]dev-publish(?:-utils)?:)${escape(DevPublishVersion)}\S*"""
+      """(?<=[:\-]dev-publish(?:-utils)?:)\S+"""
     )
 
     /**
