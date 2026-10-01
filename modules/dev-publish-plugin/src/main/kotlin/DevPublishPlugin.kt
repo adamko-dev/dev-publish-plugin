@@ -81,7 +81,7 @@ constructor(
       repositoryContents.from(devPubConfigurations.devMavenPublicationResolver)
     }
 
-    devPubConfigurations.devMavenPublicationApiElements.configure {
+    devPubConfigurations.devMavenPublicationElements.configure {
       outgoing {
         // Only share repos from _this_ subproject, not from the aggregated repo
         artifact(devPubExtension.publicationsStore) {
@@ -364,6 +364,12 @@ constructor(
     internal const val DEV_PUB__UTILS_CONFIGURATION = "devPublishUtils"
 
     const val DEV_PUB__PUBLICATION_DEPENDENCIES = "devPublication"
+
+    @Deprecated(
+      "devPublication dependencies are shared with consumers by default, so devPublicationApi is redundant. " +
+          "Scheduled for removal in version 2.0.",
+      ReplaceWith("DEV_PUB__PUBLICATION_DEPENDENCIES"),
+    )
     const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
     const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"

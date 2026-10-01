@@ -16,7 +16,7 @@ import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.dependencies
+import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -150,5 +150,19 @@ internal inline fun <reified T : Task> TaskContainer.registerDeprecatedTask(
         solution("Use '$replacementName' instead of '$name'.")
       }
     }
+  }
+}
+
+/**
+ * Use an internal Gradle feature to mark [Configuration]s as deprecated.
+ */
+internal fun <T : Configuration> T.deprecate(replaceWith: String) {
+  try {
+    if (this is DeprecatableConfiguration) {
+      addDeclarationAlternatives(replaceWith)
+    }
+  } catch (_: Throwable) {
+    // Deprecating configurations is an internal Gradle feature, so it might be unstable.
+    // Because these migration helpers are temporary, just ignore all errors.
   }
 }
