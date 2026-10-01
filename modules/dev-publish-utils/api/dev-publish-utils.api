@@ -1,0 +1,33 @@
+public final class dev/adamko/gradle/dev_publish/DevPublishTestKit {
+	public static final fun devMavenRepo ()Ljava/nio/file/Path;
+	public static final fun devPublishDependencyResolutionManagement ()Ljava/lang/String;
+	public static final fun devPublishDependencyResolutionManagement (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun devPublishDependencyResolutionManagement (Ljava/nio/file/Path;Z)Ljava/lang/String;
+	public static final fun devPublishDependencyResolutionManagement (Ljava/nio/file/Path;ZLdev/adamko/gradle/dev_publish/ScriptDsl;)Ljava/lang/String;
+	public static synthetic fun devPublishDependencyResolutionManagement$default (Ljava/nio/file/Path;ZLdev/adamko/gradle/dev_publish/ScriptDsl;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun devPublishPluginManagement ()Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;Z)Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;ZZ)Ljava/lang/String;
+	public static final fun devPublishPluginManagement (Ljava/nio/file/Path;ZZLdev/adamko/gradle/dev_publish/ScriptDsl;)Ljava/lang/String;
+	public static synthetic fun devPublishPluginManagement$default (Ljava/nio/file/Path;ZZLdev/adamko/gradle/dev_publish/ScriptDsl;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun devPublishRepository ()Ljava/lang/String;
+	public static final fun devPublishRepository (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun devPublishRepository (Ljava/nio/file/Path;Ldev/adamko/gradle/dev_publish/ScriptDsl;)Ljava/lang/String;
+	public static synthetic fun devPublishRepository$default (Ljava/nio/file/Path;Ldev/adamko/gradle/dev_publish/ScriptDsl;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun devPublishSettings ()Ljava/lang/String;
+	public static final fun devPublishSettings (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun devPublishSettings (Ljava/lang/String;Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun devPublishSettings (Ljava/lang/String;Ljava/nio/file/Path;Ldev/adamko/gradle/dev_publish/ScriptDsl;)Ljava/lang/String;
+	public static synthetic fun devPublishSettings$default (Ljava/lang/String;Ljava/nio/file/Path;Ldev/adamko/gradle/dev_publish/ScriptDsl;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public abstract class dev/adamko/gradle/dev_publish/ScriptDsl {
+	public static final field Companion Ldev/adamko/gradle/dev_publish/ScriptDsl$Companion;
+	public static final field Groovy Ldev/adamko/gradle/dev_publish/ScriptDsl;
+	public static final field Kotlin Ldev/adamko/gradle/dev_publish/ScriptDsl;
+}
+
+public final class dev/adamko/gradle/dev_publish/ScriptDsl$Companion {
+}
+

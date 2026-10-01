@@ -12,6 +12,8 @@ plugins {
 dependencies {
   implementation(projects.modules.devPublishCommon)
 
+  testFixturesImplementation(projects.modules.devPublishCommon)
+
   testFixturesApi(gradleTestKit())
   testFixturesApi(platform(libs.kotest.bom))
   testFixturesApi(libs.kotest.runnerJUnit5)

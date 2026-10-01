@@ -17,6 +17,7 @@ val mavenPublishing =
 dependencies {
   nmcpAggregation(projects.modules.devPublishCommon)
   nmcpAggregation(projects.modules.devPublishPlugin)
+  nmcpAggregation(projects.modules.devPublishUtils)
 }
 
 nmcpAggregation {
