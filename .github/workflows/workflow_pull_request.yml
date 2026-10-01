@@ -18,6 +18,7 @@ concurrency:
 jobs:
 
   tests:
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'renovate/')
     uses: ./.github/workflows/run_tests.yml
     permissions:
       contents: read

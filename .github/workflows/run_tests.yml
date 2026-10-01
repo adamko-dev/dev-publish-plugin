@@ -30,6 +30,8 @@ jobs:
 
   gradle-check:
     strategy:
+      # `task` is the same for every entry, but it is part of the job name, and so part of the
+      # required status checks on main - dropping it renames all three
       matrix:
         include:
           - os: macos-latest
@@ -45,3 +47,4 @@ jobs:
       gradle-task: >-
         ${{ matrix.task }} --stacktrace
       checkout-ref: ${{ inputs.checkout-ref }}
+      label: check
