@@ -7,13 +7,6 @@ plugins {
   base
 }
 
-// common config for all projects
-
-if (project != rootProject) {
-  project.version = rootProject.version
-  project.group = rootProject.group
-}
-
 tasks.withType<AbstractTestTask>().configureEach {
   timeout.set(Duration.ofMinutes(60))
 
