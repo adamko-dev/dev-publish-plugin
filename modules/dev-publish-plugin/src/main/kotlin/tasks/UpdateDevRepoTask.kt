@@ -2,11 +2,11 @@ package dev.adamko.gradle.dev_publish.tasks
 
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.dropDirectory
-import dev.adamko.gradle.dev_publish.utils.sortedFiles
 import java.io.File
 import javax.inject.Inject
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
@@ -39,8 +39,8 @@ constructor(
   @get:InputFiles
   @get:PathSensitive(RELATIVE)
   @DevPublishInternalApi
-  protected val publicationsStoreFiles: Provider<out Set<File>>
-    get() = publicationsStore.sortedFiles()
+  protected val publicationsStoreFiles: FileCollection
+    get() = publicationsStore.asFileTree
 
   /**
    * Additional files to include in [devRepo].
