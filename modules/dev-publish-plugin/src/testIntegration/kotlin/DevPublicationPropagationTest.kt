@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.intellij.lang.annotations.Language
 
-class ApiPropagationTest : FunSpec({
+class DevPublicationPropagationTest : FunSpec({
 
   context("multi-module project") {
     val project = project()
