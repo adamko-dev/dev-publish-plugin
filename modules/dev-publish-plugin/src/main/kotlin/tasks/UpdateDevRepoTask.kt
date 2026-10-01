@@ -32,7 +32,7 @@ constructor(
   /**
    * [publicationsStore] is marked as [Internal] as a workaround for 'input directory does not exist' problem.
    *
-   * https://docs.gradle.org/current/userguide/validation_problems.html#input_file_does_not_exist
+   * https://docs.gradle.org/9.8.0/userguide/validation_problems.html#input_file_does_not_exist
    *
    * This property exists so Gradle will still be able to detect the inputs using [InputFiles].
    */
