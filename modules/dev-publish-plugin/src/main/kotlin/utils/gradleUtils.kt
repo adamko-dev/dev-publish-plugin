@@ -3,7 +3,6 @@ package dev.adamko.gradle.dev_publish.utils
 import java.io.File
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
@@ -11,88 +10,8 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RelativePath
 import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.util.GradleVersion
-
-
-/**
- * Mark this [Configuration] as one that should be used to declare dependencies in
- * [Project.dependencies] block.
- *
- * Declarable Configurations should be extended by [resolvable] and [consumable] Configurations.
- *
- * ```
- * isCanBeResolved = false
- * isCanBeConsumed = false
- * isCanBeDeclared = true
- * ```
- */
-internal fun Configuration.declarable() {
-  isCanBeResolved = false
-  isCanBeConsumed = false
-  canBeDeclared = true
-}
-
-
-/**
- * Mark this [Configuration] as one that will be consumed by other subprojects.
- *
- * ```
- * isCanBeResolved = false
- * isCanBeConsumed = true
- * isCanBeDeclared = false
- * ```
- */
-internal fun Configuration.consumable() {
-  isCanBeResolved = false
-  isCanBeConsumed = true
-  canBeDeclared = false
-}
-
-
-/**
- * Mark this [Configuration] as one that will consume (also known as 'resolving') artifacts from declared dependencies
- *
- * ```
- * isCanBeResolved = true
- * isCanBeConsumed = false
- * isCanBeDeclared = false
- * ```
- */
-internal fun Configuration.resolvable() {
-  isCanBeResolved = true
-  isCanBeConsumed = false
-  canBeDeclared = false
-}
-
-
-/**
- * Enable/disable [Configuration.isCanBeDeclared] only if it is supported by the
- * [CurrentGradleVersion]
- *
- * This function should be removed when the minimal supported Gradle version is 8.2.
- */
-private var Configuration.canBeDeclared: Boolean
-  get() {
-    return if (configurationIsCanBeDeclaredEnabled) {
-      @Suppress("UnstableApiUsage")
-      isCanBeDeclared
-    } else {
-      false
-    }
-  }
-  set(value) {
-    if (configurationIsCanBeDeclaredEnabled) {
-      @Suppress("UnstableApiUsage")
-      isCanBeDeclared = value
-    } else {
-      // do nothing
-    }
-  }
-
-/** `true` if [Configuration.isCanBeDeclared] is valid for the current Gradle version. */
-private val configurationIsCanBeDeclaredEnabled: Boolean = CurrentGradleVersion >= "8.2"
 
 
 /** Shortcut for [GradleVersion.current] */
@@ -173,5 +92,15 @@ internal inline fun <reified T : Task> T.doLast_(
   doLast(name) {
     require(this is T) { "invalid task type in doLast. Expected ${T::class}, but was ${this::class}." }
     action(this)
+  }
+}
+
+@Suppress("FunctionName")
+internal fun Configuration.extendsFrom_(configuration: Provider<out Configuration>) {
+  if (CurrentGradleVersion >= "9.4.0") {
+    @Suppress("UnstableApiUsage")
+    extendsFrom(configuration)
+  } else {
+    extendsFrom(configuration.get())
   }
 }
