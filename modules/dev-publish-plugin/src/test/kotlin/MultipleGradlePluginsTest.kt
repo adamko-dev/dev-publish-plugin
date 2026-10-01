@@ -46,7 +46,7 @@ class MultipleGradlePluginsTest : FunSpec({
           }
 
           test("should run dev-publish tasks") {
-            shouldHaveTaskWithAnyOutcome(":generatePublicationHashTask", FROM_CACHE, SUCCESS)
+            shouldHaveTaskWithAnyOutcome(":generateDevPublishChecksums", FROM_CACHE, SUCCESS)
             shouldHaveTaskWithAnyOutcome(":updateDevRepo", FROM_CACHE, SUCCESS)
           }
         }
@@ -72,7 +72,7 @@ class MultipleGradlePluginsTest : FunSpec({
 
           test("should not re-run dev-publish tasks") {
             shouldHaveTaskWithAnyOutcome(":publishAllToDevRepo", UP_TO_DATE)
-            shouldHaveTaskWithAnyOutcome(":generatePublicationHashTask", UP_TO_DATE)
+            shouldHaveTaskWithAnyOutcome(":generateDevPublishChecksums", UP_TO_DATE)
             shouldHaveTaskWithAnyOutcome(":updateDevRepo", UP_TO_DATE)
           }
         }
