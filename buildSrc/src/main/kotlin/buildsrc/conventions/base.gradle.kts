@@ -19,9 +19,6 @@ tasks.withType<AbstractTestTask>().configureEach {
       PASSED,
       FAILED,
       SKIPPED,
-      STARTED,
-      STANDARD_ERROR,
-      STANDARD_OUT,
     )
   }
 }
