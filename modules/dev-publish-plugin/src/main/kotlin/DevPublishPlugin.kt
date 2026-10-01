@@ -76,10 +76,12 @@ constructor(
       repositoryContents.from(devPubConfigurations.devMavenPublicationResolver)
     }
 
-    devPubConfigurations.devMavenPublicationApiElements.outgoing {
-      // Only share repos from _this_ subproject, not from the aggregated repo
-      artifact(devPubExtension.publicationsStore) {
-        builtBy(devPubTasks.publishAllToDevRepo)
+    devPubConfigurations.devMavenPublicationApiElements.configure {
+      outgoing {
+        // Only share repos from _this_ subproject, not from the aggregated repo
+        artifact(devPubExtension.publicationsStore) {
+          builtBy(devPubTasks.publishAllToDevRepo)
+        }
       }
     }
 
