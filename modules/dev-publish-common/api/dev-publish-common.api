@@ -1,0 +1,3 @@
+public abstract interface annotation class dev/adamko/gradle/dev_publish/internal/DevPublishInternalApi : java/lang/annotation/Annotation {
+}
+

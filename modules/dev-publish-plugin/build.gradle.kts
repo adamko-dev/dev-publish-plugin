@@ -10,6 +10,8 @@ plugins {
 }
 
 dependencies {
+  implementation(projects.modules.devPublishCommon)
+
   testFixturesApi(gradleTestKit())
   testFixturesApi(platform(libs.kotest.bom))
   testFixturesApi(libs.kotest.runnerJUnit5)
@@ -62,7 +64,7 @@ gradlePlugin {
   }
 }
 
-val testMavenRepoDir: Provider<Directory> = layout.buildDirectory.dir("test-maven-repo")
+val testMavenRepoDir: Directory = isolated.rootProject.projectDirectory.dir("build/test-maven-repo")
 val projectTestTempDir: Provider<Directory> = layout.buildDirectory.dir("project-tests")
 
 publishing {
@@ -77,6 +79,7 @@ skipTestFixturesPublications()
 
 tasks.withType<Test>().configureEach {
   dependsOn("publishAllPublicationsToTestMavenRepoRepository")
-  systemProperty("testMavenRepoDir", testMavenRepoDir.get().asFile.invariantSeparatorsPath)
+  dependsOn(":modules:dev-publish-common:publishAllPublicationsToTestMavenRepoRepository")
+  systemProperty("testMavenRepoDir", testMavenRepoDir.asFile.invariantSeparatorsPath)
   systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
 }

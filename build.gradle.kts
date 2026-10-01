@@ -15,6 +15,7 @@ val mavenPublishing =
   extensions.create<MavenPublishingSettings>(MavenPublishingSettings.EXTENSION_NAME, project)
 
 dependencies {
+  nmcpAggregation(projects.modules.devPublishCommon)
   nmcpAggregation(projects.modules.devPublishPlugin)
 }
 

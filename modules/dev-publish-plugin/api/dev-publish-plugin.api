@@ -25,9 +25,6 @@ public abstract class dev/adamko/gradle/dev_publish/data/PublicationData : org/g
 	public fun getName ()Ljava/lang/String;
 }
 
-public abstract interface annotation class dev/adamko/gradle/dev_publish/internal/DevPublishInternalApi : java/lang/annotation/Annotation {
-}
-
 public abstract class dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask : org/gradle/api/DefaultTask {
 	public static final field Companion Ldev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask$Companion;
 	public static final field TASK_GROUP Ljava/lang/String;
