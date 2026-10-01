@@ -126,7 +126,7 @@ tasks.nmcpPublishAggregationToCentralPortalSnapshots {
   onlyIf("is snapshot version") { _ -> !isReleaseVersion.get() }
 }
 
-tasks.register("nmcpPublish") {
+val nmcpPublish by tasks.registering {
   group = PublishingPlugin.PUBLISH_TASK_GROUP
   dependsOn(tasks.nmcpPublishAggregationToCentralPortal)
   dependsOn(tasks.nmcpPublishAggregationToCentralPortalSnapshots)
