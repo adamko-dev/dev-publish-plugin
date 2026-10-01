@@ -8,6 +8,9 @@ plugins {
   id("com.gradleup.nmcp")
 }
 
+group = "dev.adamko.gradle"
+version = "1.2.0-SNAPSHOT"
+
 val mavenPublishing =
   extensions.create<MavenPublishingSettings>(MavenPublishingSettings.EXTENSION_NAME, project)
 

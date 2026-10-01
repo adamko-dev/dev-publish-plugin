@@ -21,3 +21,21 @@ extensions.getByType<JavaPluginExtension>().apply {
 tasks.withType<Test>().configureEach {
   useJUnitPlatform()
 }
+
+val createJavadocJarReadme by tasks.registering(Sync::class) {
+  description = "generate a readme.txt for the Javadoc JAR"
+  from(
+    resources.text.fromString(
+      """
+      |This Javadoc JAR is intentionally empty.
+      |
+      |For documentation, see:
+      |* https://github.com/adamko-dev/dev-publish-plugin
+      |* Or the sources JAR. 
+      |""".trimMargin()
+    )
+  ) {
+    rename { "readme.txt" }
+  }
+  into(temporaryDir)
+}
