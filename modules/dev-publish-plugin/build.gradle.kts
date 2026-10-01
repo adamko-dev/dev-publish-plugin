@@ -82,12 +82,27 @@ publishing {
 
 skipTestFixturesPublications()
 
-tasks.withType<Test>().configureEach {
-  dependsOn("publishAllPublicationsToTestMavenRepoRepository")
-  dependsOn(":modules:dev-publish-common:publishAllPublicationsToTestMavenRepoRepository")
-  dependsOn(":modules:dev-publish-utils:publishAllPublicationsToTestMavenRepoRepository")
-  systemProperty("testMavenRepoDir", testMavenRepoDir.asFile.invariantSeparatorsPath)
-  systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
+testing {
+  suites.withType<JvmTestSuite>().configureEach {
+    useJUnitJupiter()
+  }
+  val testIntegration by suites.registering(JvmTestSuite::class) {
+    dependencies {
+      implementation(testFixtures(project()))
+    }
+    targets.configureEach {
+      testTask.configure {
+        dependsOn("publishAllPublicationsToTestMavenRepoRepository")
+        dependsOn(":modules:dev-publish-common:publishAllPublicationsToTestMavenRepoRepository")
+        dependsOn(":modules:dev-publish-utils:publishAllPublicationsToTestMavenRepoRepository")
+        systemProperty("testMavenRepoDir", testMavenRepoDir.asFile.invariantSeparatorsPath)
+        systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
+      }
+    }
+  }
+  tasks.check {
+    dependsOn(testIntegration)
+  }
 }
 
 val generateDevPublishVersionKt by tasks.registering {
