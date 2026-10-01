@@ -22,4 +22,5 @@ enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
 include(
   ":modules:dev-publish-common",
   ":modules:dev-publish-plugin",
+  ":modules:dev-publish-utils",
 )
