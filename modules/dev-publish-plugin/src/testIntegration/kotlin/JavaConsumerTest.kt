@@ -1,6 +1,7 @@
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
+import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.testedGradleVersion
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
@@ -50,6 +51,13 @@ class JavaConsumerTest : FunSpec({
               .joinToString("\n")
               .trim()
 
+          val rootProjectName =
+            if (testedGradleVersion >= "9.0") {
+              "root project 'java-consumer'"
+            } else {
+              "root project :"
+            }
+
           dependencyInsightReport shouldBe """
             |dev.adamko.gradle:dev-publish-utils:{version}
             |  Variant runtimeElements:
@@ -63,8 +71,8 @@ class JavaConsumerTest : FunSpec({
             |    | org.gradle.usage                   | java-runtime | java-runtime |
             |
             |dev.adamko.gradle:dev-publish-utils:{version}
-            |\--- root project 'java-consumer'
-            |     \--- root project 'java-consumer' (*)
+            |\--- $rootProjectName
+            |     \--- $rootProjectName (*)
             """.trimMargin()
         }
     }

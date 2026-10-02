@@ -8,6 +8,7 @@ import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.GradleVersion
 import org.intellij.lang.annotations.Language
 
 
@@ -24,15 +25,18 @@ class GradleProjectTest(
     baseDir: Path = funcTestTempDir,
     projectName: String,
   ) : this(
-    projectDir = baseDir.resolve(testProjectPath),
+    projectDir = baseDir.resolve(testedGradleVersion.version).resolve(testProjectPath),
     projectName = projectName,
   )
 
   val runner: GradleRunner = GradleRunner.create()
     .withProjectDir(projectDir.toFile())
+    .withGradleVersion(testedGradleVersion.version)
     .withReadOnlyDependencyCache()
 
   companion object {
+
+    val testedGradleVersion: GradleVersion by systemProperty(GradleVersion::version)
 
     /** file-based Maven Repo that contains the published plugin */
     private val testMavenRepoDir: Path by systemProperty(Paths::get)

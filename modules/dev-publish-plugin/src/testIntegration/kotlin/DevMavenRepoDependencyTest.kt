@@ -58,7 +58,7 @@ class DevMavenRepoDependencyTest : FunSpec({
 
         buildGradleKts = """
             |plugins {
-            |  kotlin("jvm") version embeddedKotlinVersion
+            |  kotlin("jvm") version "2.2.21"
             |  `maven-publish`
             |  id("dev.adamko.dev-publish") version "+"
             |}

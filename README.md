@@ -20,6 +20,9 @@ that publishes subprojects to a project-local directory, ready for functional te
 
 ### Quick Start
 
+Minimum supported Gradle version: 8.14.5
+Minimum supported Kotlin version: 2.2.21
+
 If a subproject already publishes Maven artifacts, then apply DevPublish using the plugin ID `dev.adamko.dev-publish`
 and [the latest version](https://plugins.gradle.org/plugin/dev.adamko.dev-publish).
 

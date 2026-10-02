@@ -28,6 +28,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -64,8 +65,10 @@ constructor(
   private val layout: ProjectLayout,
   private val fs: FileSystemOperations,
   private val objects: ObjectFactory,
-  private val problems: Problems,
+  problems: Problems,
 ) : Plugin<Project> {
+
+  private val problemsReporter: ProblemReporter = problems.reporter
 
   override fun apply(project: Project) {
     val devPublishDependency = createDevPublishDependency(project)
@@ -78,7 +81,7 @@ constructor(
       tasks = project.tasks,
       devPubExtension = devPubExtension,
       objects = objects,
-      problems = problems,
+      problemsReporter = problemsReporter,
     )
 
     val devPubAttributes = DevPubAttributes(objects)
@@ -322,7 +325,7 @@ constructor(
 
       project.extensions.configure<SigningExtension> {
         if (this !is ExtensionAware) {
-          problems.reporter.reportSigningExtensionNotExtensionAware()
+          problemsReporter.reportSigningExtensionNotExtensionAware()
           return@configure
         }
 
@@ -339,7 +342,7 @@ constructor(
           if (isRequired && signatory == null &&
             publishingToDevRepo.get() && !publishingOutsideDevRepo.get()
           ) {
-            problems.reporter.failMissingSignatory(taskPath = path)
+            problemsReporter.failMissingSignatory(taskPath = path)
           }
         }
       }

@@ -98,6 +98,19 @@ testing {
         systemProperty("hostGradleUserHome", gradle.gradleUserHomeDir.invariantSeparatorsPath)
         systemProperty("testMavenRepoDir", testMavenRepoDir.asFile.invariantSeparatorsPath)
         systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
+        systemProperty("testedGradleVersion", GradleVersion.current().version)
+      }
+    }
+
+    val additionalTestedGradleVersions = listOf(
+      "8.14.5",
+    )
+    additionalTestedGradleVersions.forEach { testedGradleVersion ->
+      targets.register("testIntegrationGradle_${testedGradleVersion.replace(Regex("[^\\d]"), "_")}") {
+        testTask.configure {
+          shouldRunAfter("test")
+          systemProperty("testedGradleVersion", testedGradleVersion)
+        }
       }
     }
   }
