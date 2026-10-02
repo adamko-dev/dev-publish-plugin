@@ -95,6 +95,7 @@ testing {
         dependsOn("publishAllPublicationsToTestMavenRepoRepository")
         dependsOn(":modules:dev-publish-common:publishAllPublicationsToTestMavenRepoRepository")
         dependsOn(":modules:dev-publish-utils:publishAllPublicationsToTestMavenRepoRepository")
+        systemProperty("hostGradleUserHome", gradle.gradleUserHomeDir.invariantSeparatorsPath)
         systemProperty("testMavenRepoDir", testMavenRepoDir.asFile.invariantSeparatorsPath)
         systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
       }
