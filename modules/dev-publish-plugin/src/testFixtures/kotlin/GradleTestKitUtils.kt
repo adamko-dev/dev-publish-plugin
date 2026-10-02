@@ -4,7 +4,7 @@ import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.sett
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.io.path.name
+import kotlin.io.path.*
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -31,6 +31,7 @@ class GradleProjectTest(
 
   val runner: GradleRunner = GradleRunner.create()
     .withProjectDir(projectDir.toFile())
+    .withReadOnlyDependencyCache()
 
   companion object {
 
@@ -82,6 +83,40 @@ class GradleProjectTest(
     /** Temporary directory for the functional tests */
     val funcTestTempDir: Path by lazy {
       projectTestTempDir.resolve("functional-tests")
+    }
+
+    /**
+     * Gradle User Home of the current machine. Defaults to `~/.gradle`, but might be different on CI.
+     *
+     * This value is provided by the Gradle Test task.
+     */
+    private val hostGradleUserHome: Path? by optionalSystemProperty(Paths::get)
+
+    /**
+     * Gradle dependencies cache of the current machine.
+     * Used as a read-only dependencies cache by setting `GRADLE_RO_DEP_CACHE`
+     *
+     * See https://docs.gradle.org/9.8.0/userguide/dependency_caching.html#sec:shared-readonly-cache
+     */
+    internal val hostGradleDependenciesCache: Path? by lazy {
+      hostGradleUserHome?.resolve("caches")
+    }
+
+    internal fun GradleRunner.withReadOnlyDependencyCache(): GradleRunner {
+      val cacheDir = hostGradleDependenciesCache?.takeIf { it.exists() }
+        ?: return this
+
+      return withEnvironment(
+        buildMap {
+          // `withEnvironment()` will wipe all existing environment variables,
+          // which breaks things like ANDROID_HOME and PATH, so re-add them.
+          putAll(System.getenv())
+
+          if (cacheDir.exists()) {
+            put("GRADLE_RO_DEP_CACHE", cacheDir.invariantSeparatorsPathString)
+          }
+        }
+      )
     }
   }
 }
