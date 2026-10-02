@@ -1,6 +1,7 @@
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
+import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.testedGradleVersion
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
@@ -53,7 +54,11 @@ class MultiProjectTest : FunSpec({
       project.runner.withArguments(
         ":project-aggregate-all:updateDevRepo",
       ).buildAndFail {
-        output shouldContain "Could not resolve project ':project-kotlin-jvm-no-dev-publish'"
+        if (testedGradleVersion >= "9.0") {
+          output shouldContain "Could not resolve project ':project-kotlin-jvm-no-dev-publish'"
+        } else {
+          output shouldContain "Could not resolve project :project-kotlin-jvm-no-dev-publish"
+        }
       }
     }
   }

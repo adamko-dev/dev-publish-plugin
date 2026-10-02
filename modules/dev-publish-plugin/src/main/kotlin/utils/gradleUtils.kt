@@ -10,7 +10,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.RelativePath
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -113,7 +113,7 @@ internal val Project.groupProvider: Provider<String>
 internal inline fun <reified T : Task> TaskContainer.registerDeprecatedTask(
   deprecatedName: String,
   replacementName: String,
-  problems: Problems,
+  problemsReporter: ProblemReporter,
 ): TaskProvider<T> {
   return register<T>(deprecatedName) {
     description = "Deprecated. Use `$replacementName` instead."
@@ -124,7 +124,7 @@ internal inline fun <reified T : Task> TaskContainer.registerDeprecatedTask(
     val projectDisplayName = project.displayName
 
     doLast {
-      problems.reporter.report(deprecatedTaskProblemId) {
+      problemsReporter.report(deprecatedTaskProblemId) {
         contextualLabel("Task '$path' is deprecated")
         details("Task '$name', in $projectDisplayName, was renamed to '$replacementName'.")
         solution("Use '$replacementName' instead of '$name'.")

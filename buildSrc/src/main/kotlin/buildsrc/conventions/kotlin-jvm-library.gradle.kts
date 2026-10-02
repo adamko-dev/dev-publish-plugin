@@ -5,6 +5,7 @@ import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import provideDelegate
 import registering
@@ -20,7 +21,10 @@ kotlin {
   jvmToolchain(17)
   @OptIn(ExperimentalAbiValidation::class)
   abiValidation {}
+  coreLibrariesVersion = "2.2.21"
   compilerOptions {
+    languageVersion = KOTLIN_2_2
+    apiVersion = KOTLIN_2_2
     optIn.addAll(
       "kotlin.io.path.ExperimentalPathApi",
     )

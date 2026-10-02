@@ -1,6 +1,7 @@
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
+import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.testedGradleVersion
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
@@ -25,7 +26,9 @@ class DeprecatedTaskAliasTest : FunSpec({
           shouldHaveRunTask(":generateDevPublishChecksums")
           shouldHaveRunTask(":generatePublicationHashTask")
 
-          output shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task-alias', was renamed to 'generateDevPublishChecksums'."
+          if (testedGradleVersion >= "9.0") {
+            output shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task-alias', was renamed to 'generateDevPublishChecksums'."
+          }
         }
     }
 
