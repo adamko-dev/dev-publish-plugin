@@ -8,6 +8,8 @@ import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
 import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.internal.checksums.LoadPublicationChecksum.Companion.loadPublicationChecksum
 import dev.adamko.gradle.dev_publish.internal.checksums.checksumsToDebugString
+import dev.adamko.gradle.dev_publish.internal.failMissingSignatory
+import dev.adamko.gradle.dev_publish.internal.reportSigningExtensionNotExtensionAware
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
@@ -22,19 +24,27 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.publish.tasks.GenerateModuleMetadata
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
+import org.gradle.plugins.signing.Sign
+import org.gradle.plugins.signing.SigningExtension
+import org.gradle.plugins.signing.SigningPlugin
 
 /**
  * Utility plugin for publishing subprojects to a local file-based Maven repository.
@@ -106,6 +116,10 @@ constructor(
     configureBasePlugin(
       project = project,
       devPubTasks = devPubTasks,
+    )
+
+    configureSigningPlugin(
+      project = project,
     )
 
     project.tasks.withType<PublishToMavenRepository>().configureEach {
@@ -288,6 +302,103 @@ constructor(
     }
   }
 
+  /**
+   * React to the [SigningPlugin].
+   *
+   * If signing is enabled and there's no signatory, then DevPublish tasks will fail.
+   * To improve UX:
+   * - Throw an error that explains the situation and suggest solutions.
+   * - Create `signing.publishingOutsideDevRepo` helper, for use in [SigningExtension.setRequired].
+   */
+  private fun configureSigningPlugin(
+    project: Project,
+  ) {
+    project.plugins.withType<SigningPlugin>().configureEach {
+      val publishingToDevRepo = publishesToDevRepo(project)
+      val publishingOutsideDevRepo = project.publishesOutsideDevRepo()
+
+      val problems = project.serviceOf<Problems>()
+      val projectDisplayName = project.displayName
+
+      project.extensions.configure<SigningExtension> {
+        if (this !is ExtensionAware) {
+          problems.reporter.reportSigningExtensionNotExtensionAware()
+          return@configure
+        }
+
+        extensions.add<Provider<Boolean>>(
+          SIGNING__EXTERNAL_PUBLISHING_PROPERTY,
+          publishingOutsideDevRepo,
+        )
+      }
+
+      project.tasks.withType<Sign>().configureEach {
+        doFirst_("report missing signatory") {
+          // only when the dev repo is the sole target - otherwise signing is genuinely required,
+          // and Gradle's own 'no configured signatory' error is the correct one
+          if (isRequired && signatory == null &&
+            publishingToDevRepo.get() && !publishingOutsideDevRepo.get()
+          ) {
+            problems.reporter.failMissingSignatory(taskPath = path)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * `true` if this project has a task in the graph that publishes to the
+   * [DevPublish][DEV_PUB__MAVEN_REPO_NAME] Maven repository.
+   */
+  private fun publishesToDevRepo(project: Project): Provider<Boolean> {
+    val publishesToDevRepo = objects.property<Boolean>().convention(false)
+
+    val devRepoSuffix = "To${DEV_PUB__MAVEN_REPO_NAME}Repository"
+
+    val devRepoPublishTasks = project.tasks
+      .withType<PublishToMavenRepository>()
+      .matching { it.name.endsWith(devRepoSuffix) }
+
+    project.gradle.taskGraph.whenReady {
+      publishesToDevRepo.set(devRepoPublishTasks.any { hasTask(it) })
+    }
+
+    publishesToDevRepo.finalizeValueOnRead()
+
+    return publishesToDevRepo
+  }
+
+  /**
+   * `true` if this project has a task in the graph that publishes somewhere other than the
+   * DevPublish Maven repository.
+   *
+   * Only this project's own tasks are considered, because a [Sign] task and the publications it
+   * signs belong to the same project. Defaults to `true`, so signing is never skipped by accident.
+   */
+  private fun Project.publishesOutsideDevRepo(): Provider<Boolean> {
+    val publishesOutsideDevRepo = objects.property<Boolean>().convention(true)
+
+    val devRepoSuffix = "To${DEV_PUB__MAVEN_REPO_NAME}Repository"
+
+    val publishesOutside = tasks
+      .withType<AbstractPublishToMaven>()
+      .matching { task ->
+        when (task) {
+          is PublishToMavenLocal -> true
+          is PublishToMavenRepository -> !task.name.endsWith(devRepoSuffix)
+          else -> false
+        }
+      }
+
+    gradle.taskGraph.whenReady {
+      publishesOutsideDevRepo.set(publishesOutside.any { hasTask(it) })
+    }
+
+    publishesOutsideDevRepo.finalizeValueOnRead()
+
+    return publishesOutsideDevRepo
+  }
+
   /** React to [LifecycleBasePlugin], and configure the appropriate tasks */
   private fun configureBasePlugin(
     project: Project,
@@ -351,6 +462,9 @@ constructor(
 
     /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency]. */
     internal const val DEV_PUB__ELEMENTS_CONFIGURATION = "devPublishElements"
+
+    /** Name of the extension DevPublish adds to [SigningExtension]. */
+    internal const val SIGNING__EXTERNAL_PUBLISHING_PROPERTY = "publishingOutsideDevRepo"
 
     /** Group of the capability that identifies [DEV_PUB__ELEMENTS_CONFIGURATION]. */
     internal const val DEV_PUB__CAPABILITY_GROUP = "dev.adamko.dev-publish"
