@@ -1,7 +1,6 @@
 package dev.adamko.gradle.dev_publish.test_utils
 
 import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.settingRepositories
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
@@ -40,10 +39,7 @@ class GradleProjectTest(
 
     val testMavenRepoPathString: String
       get() = testMavenRepoDir
-        .toFile()
-        .canonicalFile
-        .absoluteFile
-        .invariantSeparatorsPath
+        .absolute().normalize().invariantSeparatorsPathString
 
     val settingRepositories: String
       get() {
@@ -179,7 +175,7 @@ private class TestProjectFileProvidedDelegate(
   private val filePath: String,
 ) : ReadWriteProperty<Any?, String> {
   override fun getValue(thisRef: Any?, property: KProperty<*>): String =
-    project.projectDir.resolve(filePath).toFile().readText()
+    project.projectDir.resolve(filePath).readText()
 
   override fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
     project.createFile(filePath, value)
@@ -191,7 +187,7 @@ class TestProjectFileDelegate(
   private val filePath: String,
 ) : ReadWriteProperty<ProjectDirectoryScope, String> {
   override fun getValue(thisRef: ProjectDirectoryScope, property: KProperty<*>): String =
-    thisRef.projectDir.resolve(filePath).toFile().readText()
+    thisRef.projectDir.resolve(filePath).readText()
 
   override fun setValue(thisRef: ProjectDirectoryScope, property: KProperty<*>, value: String) {
     thisRef.createFile(filePath, value)
@@ -212,10 +208,9 @@ private data class ProjectDirectoryScopeImpl(
 ) : ProjectDirectoryScope
 
 
-fun ProjectDirectoryScope.createFile(filePath: String, contents: String): File =
-  projectDir.resolve(filePath).toFile().apply {
-    parentFile.mkdirs()
-    createNewFile()
+fun ProjectDirectoryScope.createFile(filePath: String, contents: String): Path =
+  projectDir.resolve(filePath).apply {
+    parent.createDirectories()
     writeText(contents)
   }
 
