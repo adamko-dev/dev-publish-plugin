@@ -154,6 +154,7 @@ fun gradleKtsProjectTest(
       |org.gradle.logging.stacktrace=all
       |org.gradle.parallel=true
       |org.gradle.welcome=never
+      |org.gradle.isolated-projects=true
       |""".trimMargin()
 
     build()
