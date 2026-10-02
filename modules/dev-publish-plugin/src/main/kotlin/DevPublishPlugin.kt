@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
@@ -39,7 +41,6 @@ import org.gradle.api.publish.tasks.GenerateModuleMetadata
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import org.gradle.plugins.signing.Sign
@@ -63,6 +64,7 @@ constructor(
   private val layout: ProjectLayout,
   private val fs: FileSystemOperations,
   private val objects: ObjectFactory,
+  private val problems: Problems,
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
@@ -76,6 +78,7 @@ constructor(
       tasks = project.tasks,
       devPubExtension = devPubExtension,
       objects = objects,
+      problems = problems,
     )
 
     val devPubAttributes = DevPubAttributes(objects)
@@ -316,9 +319,6 @@ constructor(
     project.plugins.withType<SigningPlugin>().configureEach {
       val publishingToDevRepo = publishesToDevRepo(project)
       val publishingOutsideDevRepo = project.publishesOutsideDevRepo()
-
-      val problems = project.serviceOf<Problems>()
-      val projectDisplayName = project.displayName
 
       project.extensions.configure<SigningExtension> {
         if (this !is ExtensionAware) {

@@ -1,7 +1,6 @@
 package dev.adamko.gradle.dev_publish.utils
 
 import dev.adamko.gradle.dev_publish.internal.deprecatedTaskProblemId
-import java.io.File
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -10,7 +9,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.file.Directory
 import org.gradle.api.file.RelativePath
 import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
@@ -19,7 +17,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GradleVersion
 
 
@@ -116,14 +113,13 @@ internal val Project.groupProvider: Provider<String>
 internal inline fun <reified T : Task> TaskContainer.registerDeprecatedTask(
   deprecatedName: String,
   replacementName: String,
+  problems: Problems,
 ): TaskProvider<T> {
   return register<T>(deprecatedName) {
     description = "Deprecated. Use `$replacementName` instead."
     group = null // hide the deprecated task from `gradle tasks`
 
     dependsOn(replacementName)
-
-    val problems = project.serviceOf<Problems>()
 
     val projectDisplayName = project.displayName
 
