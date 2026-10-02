@@ -22,7 +22,7 @@ class IncrementalBuildTest : FunSpec({
         }
       }
 
-      test("2nd time - publish task should be UP_TO_DATE") {
+      test("2nd time - publish task should be SKIPPED") {
         project.runner
           .withArguments(":updateDevRepo", "--info")
           .forwardOutput()
@@ -43,15 +43,6 @@ class IncrementalBuildTest : FunSpec({
             shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SUCCESS)
           }
       }
-
-      test("2nd time - publish task should be UP_TO_DATE") {
-        project.runner
-          .withArguments(":updateDevRepo", "--info")
-          .forwardOutput()
-          .build {
-            shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SKIPPED)
-          }
-      }
     }
 
     context("when dependency changes") {
@@ -68,7 +59,7 @@ class IncrementalBuildTest : FunSpec({
           }
       }
 
-      test("2nd time - publish task should be UP_TO_DATE") {
+      test("2nd time - publish task should be SKIPPED") {
         project.runner
           .withArguments(":updateDevRepo", "--info")
           .forwardOutput()
@@ -90,14 +81,21 @@ class IncrementalBuildTest : FunSpec({
             shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SUCCESS)
           }
       }
+    }
+  }
 
-      test("2nd time - publish task should be UP_TO_DATE") {
-        project.runner
-          .withArguments(":updateDevRepo", "--info")
-          .forwardOutput()
-          .build {
-            shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SKIPPED)
-          }
+  context("an unchanged SNAPSHOT version") {
+    val project = project(version = "0.0.1-SNAPSHOT")
+
+    test("1st time - publish task should run successfully") {
+      project.runner.withArguments(":clean", ":updateDevRepo").build {
+        shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SUCCESS)
+      }
+    }
+
+    test("2nd time - publish task should be SKIPPED") {
+      project.runner.withArguments(":updateDevRepo").build {
+        shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SKIPPED)
       }
     }
   }
@@ -107,7 +105,7 @@ class IncrementalBuildTest : FunSpec({
 
   companion object {
 
-    private fun TestScope.project(): GradleProjectTest =
+    private fun TestScope.project(version: String = "0.0.1"): GradleProjectTest =
       gradleKtsProjectTest(
         projectName = "single-module-project",
         testProjectPath = testCase.descriptor.slashSeparatedPath(),
@@ -121,7 +119,7 @@ class IncrementalBuildTest : FunSpec({
           |}
           |
           |group = "foo.project"
-          |version = "0.0.1"
+          |version = "$version"
           |
           |dependencies {
           |  //devPublication(project(":"))
@@ -139,15 +137,6 @@ class IncrementalBuildTest : FunSpec({
           |  //<dep1> implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.0")
           |  //<dep2> implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
           |}
-          |""".trimMargin()
-
-        gradleProperties = """
-          |org.gradle.jvmargs=-Dfile.encoding=UTF-8
-          |org.gradle.caching=false
-          |org.gradle.configuration-cache=true
-          |org.gradle.logging.level=info
-          |org.gradle.logging.stacktrace=full
-          |org.gradle.parallel=true
           |""".trimMargin()
       }
   }

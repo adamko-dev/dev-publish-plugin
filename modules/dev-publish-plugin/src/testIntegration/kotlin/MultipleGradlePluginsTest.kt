@@ -15,23 +15,10 @@ class MultipleGradlePluginsTest : FunSpec({
   context("multiple Gradle plugins") {
     val project = project()
 
-    test("clean should succeed") {
-      project.runner
-        .withArguments("clean")
-        .build {
-          output shouldContain "SUCCESSFUL"
-          shouldHaveTaskWithAnyOutcome(":clean", SUCCESS, UP_TO_DATE)
-        }
-    }
-
     context("first publish") {
       project.runner
         .withArguments(
           "updateDevRepo",
-//          "--info",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
         )
         .forwardOutput()
         .build {
@@ -56,10 +43,6 @@ class MultipleGradlePluginsTest : FunSpec({
       project.runner
         .withArguments(
           "updateDevRepo",
-//          "--info",
-          "--stacktrace",
-          "--configuration-cache",
-          "--build-cache",
         )
         .forwardOutput()
         .build {
@@ -85,9 +68,6 @@ class MultipleGradlePluginsTest : FunSpec({
         project.runner
           .withArguments(
             "updateDevRepo",
-            "--stacktrace",
-            "--configuration-cache",
-            "--build-cache",
           )
           .forwardOutput()
           .build {
@@ -107,14 +87,14 @@ class MultipleGradlePluginsTest : FunSpec({
         project.dir("src/main/kotlin") {
           createKotlinFile(
             "PluginAlpha.kt", """
-              import org.gradle.api.*   
-              
-              class PluginAlpha : Plugin<Project> {
-                override fun apply(project: Project) {
-                  println("plugin-alpha UPDATED to trigger recompile")
-                }
-              }
-            """.trimIndent()
+              |import org.gradle.api.*
+              |
+              |class PluginAlpha : Plugin<Project> {
+              |  override fun apply(project: Project) {
+              |    println("plugin-alpha UPDATED to trigger recompile")
+              |  }
+              |}
+              |""".trimMargin()
           )
         }
 
@@ -122,9 +102,6 @@ class MultipleGradlePluginsTest : FunSpec({
           project.runner
             .withArguments(
               "updateDevRepo",
-              "--stacktrace",
-              "--configuration-cache",
-              "--build-cache",
             )
             .forwardOutput()
             .build {
@@ -171,7 +148,7 @@ private fun Path.shouldBeMavenDevRepoWithPlugins(
         |                └── multiple-gradle-plugins/
         |                    └── $directoryVersion/
         |                        └── multiple-gradle-plugins-$version.jar
-      """.trimMargin()
+        """.trimMargin()
 
   toTreeString { include("**/*.module") } shouldBe /*language=TEXT*/ """
         |maven-dev/
@@ -182,7 +159,7 @@ private fun Path.shouldBeMavenDevRepoWithPlugins(
         |                └── multiple-gradle-plugins/
         |                    └── $directoryVersion/
         |                        └── multiple-gradle-plugins-$version.module
-      """.trimMargin()
+        """.trimMargin()
 
   toTreeString { include("**/*.pom") } shouldBe /*language=TEXT*/ """
         |maven-dev/
@@ -205,7 +182,7 @@ private fun Path.shouldBeMavenDevRepoWithPlugins(
         |    └── plugin-gamma.gradle.plugin/
         |        └── $directoryVersion/
         |            └── plugin-gamma.gradle.plugin-$version.pom
-      """.trimMargin()
+        """.trimMargin()
 
   if (expectSnapshotMavenMetadata) {
     toTreeString { include("**/maven-metadata.xml") } shouldBe /*language=TEXT*/ """
@@ -233,7 +210,7 @@ private fun Path.shouldBeMavenDevRepoWithPlugins(
         |        ├── $directoryVersion/
         |        │   └── maven-metadata.xml
         |        └── maven-metadata.xml
-      """.trimMargin()
+        """.trimMargin()
   } else {
     toTreeString { include("**/maven-metadata.xml") } shouldBe /*language=TEXT*/ """
         |maven-dev/
@@ -252,7 +229,7 @@ private fun Path.shouldBeMavenDevRepoWithPlugins(
         |└── plugin-gamma/
         |    └── plugin-gamma.gradle.plugin/
         |        └── maven-metadata.xml
-      """.trimMargin()
+        """.trimMargin()
   }
 }
 
@@ -263,73 +240,73 @@ private fun TestScope.project(): GradleProjectTest =
   ) {
 
     buildGradleKts = """
-      plugins {
-        `embedded-kotlin`
-        `java-gradle-plugin`
-        `maven-publish`
-        id("dev.adamko.dev-publish") version "+"
-      }
-      
-      group = "dev.publish.plugin.test"
-      version = "1.2.3"
-      
-      gradlePlugin {
-        isAutomatedPublishing = true
-      
-        plugins.register("alpha") {
-          id = "plugin-alpha"
-          displayName = "PluginAlpha"
-          implementationClass = "PluginAlpha"
-        }
-        plugins.register("beta") {
-          id = "plugin-beta"
-          displayName = "PluginBeta"
-          implementationClass = "PluginBeta"
-        }
-        plugins.register("gamma") {
-          id = "plugin-gamma"
-          displayName = "PluginGamma"
-          implementationClass = "PluginGamma"
-        }
-      }
-    """.trimIndent()
+      |plugins {
+      |  `embedded-kotlin`
+      |  `java-gradle-plugin`
+      |  `maven-publish`
+      |  id("dev.adamko.dev-publish") version "+"
+      |}
+      |
+      |group = "dev.publish.plugin.test"
+      |version = "1.2.3"
+      |
+      |gradlePlugin {
+      |  isAutomatedPublishing = true
+      |
+      |  plugins.register("alpha") {
+      |    id = "plugin-alpha"
+      |    displayName = "PluginAlpha"
+      |    implementationClass = "PluginAlpha"
+      |  }
+      |  plugins.register("beta") {
+      |    id = "plugin-beta"
+      |    displayName = "PluginBeta"
+      |    implementationClass = "PluginBeta"
+      |  }
+      |  plugins.register("gamma") {
+      |    id = "plugin-gamma"
+      |    displayName = "PluginGamma"
+      |    implementationClass = "PluginGamma"
+      |  }
+      |}
+      |""".trimMargin()
 
     dir("src/main/kotlin") {
       createKotlinFile(
         "PluginAlpha.kt",
         """
-          import org.gradle.api.*   
-          
-          class PluginAlpha : Plugin<Project> {
-            override fun apply(project: Project) {
-              println("plugin-alpha")
-            }
-          }
-        """.trimIndent()
+          |import org.gradle.api.*
+          |
+          |class PluginAlpha : Plugin<Project> {
+          |  override fun apply(project: Project) {
+          |    println("plugin-alpha")
+          |  }
+          |}
+          |""".trimMargin()
       )
       createKotlinFile(
         "PluginBeta.kt",
         """
-          import org.gradle.api.*   
-          
-          class PluginBeta : Plugin<Project> {
-            override fun apply(project: Project) {
-              println("plugin-beta")
-            }
-          }
-        """.trimIndent()
+          |import org.gradle.api.*
+          |
+          |class PluginBeta : Plugin<Project> {
+          |  override fun apply(project: Project) {
+          |    println("plugin-beta")
+          |  }
+          |}
+          |""".trimMargin()
       )
       createKotlinFile(
         "PluginGamma.kt",
         """
-          import org.gradle.api.*   
-          
-          class PluginGamma : Plugin<Project> {
-            override fun apply(project: Project) {
-              println("plugin-gamma")
-            }
-          }
-        """.trimIndent()
+          |import org.gradle.api.*
+          |
+          |class PluginGamma : Plugin<Project> {
+          |  override fun apply(project: Project) {
+          |    println("plugin-gamma")
+          |  }
+          |}
+          |""".trimMargin()
       )
     }
   }

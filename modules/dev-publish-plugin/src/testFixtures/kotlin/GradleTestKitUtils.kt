@@ -140,12 +140,9 @@ fun gradleKtsProjectTest(
       |rootProject.name = "${this.projectName}"
       |
       |$settingRepositories
-      |
-    """.trimMargin()
+      |""".trimMargin()
 
-    buildGradleKts = """
-      |
-    """.trimMargin()
+    buildGradleKts = ""
 
     gradleProperties = """
       |org.gradle.jvmargs=-Dfile.encoding=UTF-8

@@ -39,7 +39,7 @@ class JvmTestSuiteTest : FunSpec({
         .build {
           output shouldContain "SUCCESSFUL"
 
-          shouldHaveRunTask(":test")
+          shouldHaveTaskWithAnyOutcome(":test", SUCCESS, FROM_CACHE, UP_TO_DATE)
 
           shouldNotHaveRunTask(":updateDevRepo")
           shouldNotHaveRunTask(":functionalTest")
@@ -77,6 +77,10 @@ class JvmTestSuiteTest : FunSpec({
             |}
             |
             |testing.suites {
+            |  // no `devPublish.dependency()` - the default suite must not depend on dev publishing
+            |  named<JvmTestSuite>("test") {
+            |    useJUnitJupiter()
+            |  }
             |  register<JvmTestSuite>("functionalTest") {
             |    useJUnitJupiter()
             |    dependencies {
@@ -92,7 +96,7 @@ class JvmTestSuiteTest : FunSpec({
             |}
             |""".trimMargin()
 
-        createFile(
+        createJavaFile(
           "src/main/java/FooClass.java",
           """
             |public class FooClass {
@@ -101,8 +105,25 @@ class JvmTestSuiteTest : FunSpec({
             |""".trimMargin()
         )
 
+        createJavaFile(
+          "src/test/java/FooClassTest.java",
+          """
+            |import static org.junit.jupiter.api.Assertions.assertEquals;
+            |
+            |import org.junit.jupiter.api.Test;
+            |
+            |class FooClassTest {
+            |
+            |  @Test
+            |  void nameIsFooClass() {
+            |    assertEquals("FooClass", new FooClass().name());
+            |  }
+            |}
+            |""".trimMargin()
+        )
+
         listOf("functionalTest", "integrationTest").forEach { suite ->
-          createFile(
+          createJavaFile(
             "src/$suite/java/DevMavenRepoTest.java",
             """
               |import static org.junit.jupiter.api.Assertions.assertTrue;

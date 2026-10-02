@@ -12,12 +12,6 @@ class CompositeBuildProject : FunSpec({
   context("test composite build project") {
     val project = project()
 
-    test("project clean") {
-      project.runner
-        .withArguments("clean")
-        .build()
-    }
-
     context("when lib updates dev repo") {
       project.runner
         .forwardOutput()
@@ -46,18 +40,10 @@ class CompositeBuildProject : FunSpec({
         }
 
       context("lib updates dev repo after clean") {
-        test("project clean") {
-          project.runner
-            .withArguments(
-              "clean",
-              "--info",
-            )
-            .build()
-        }
-
         project.runner
           .forwardOutput()
           .withArguments(
+            "clean",
             ":lib:updateDevRepo",
             "--info",
           ).build {

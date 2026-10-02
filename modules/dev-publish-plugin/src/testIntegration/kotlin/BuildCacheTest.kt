@@ -9,24 +9,17 @@ import io.kotest.matchers.shouldBe
 import java.nio.file.Path
 import kotlin.io.path.*
 
-@OptIn(ExperimentalPathApi::class)
 class BuildCacheTest : FunSpec({
 
   context("test single-module project") {
     val project = project()
 
     val expectedBuildCacheDir = project.projectDir.resolve("local-cache")
-    expectedBuildCacheDir.deleteRecursively()
 
     project.runner
-      //.forwardOutput()
       .withArguments(
+        "clean",
         ":build",
-        "--stacktrace",
-        "--configuration-cache",
-        "--build-cache",
-        //"-Dorg.gradle.caching.debug=true",
-        "--rerun-tasks",
       ).build {
 
         test("can build") {
@@ -45,19 +38,16 @@ class BuildCacheTest : FunSpec({
         project.runner
           .withArguments(
             ":updateDevRepo",
-            "--stacktrace",
-            "--configuration-cache",
-            "--build-cache",
-            //"-Dorg.gradle.caching.debug=true",
           ).build {
 
-            test("build cache should be same size") {
+            test("expect updateDevRepo runs the dev publishing tasks") {
               shouldHaveRunTask(":publishMavenJavaPublicationToDevPublishMavenRepository")
               shouldHaveRunTask(":publishAllPublicationsToDevPublishMavenRepository")
               shouldHaveRunTask(":updateDevRepo")
             }
 
-            test("Build cache size should be the same") {
+            // dev publishing must not write into the build cache at all
+            test("expect the build cache to be the same size afterwards") {
               expectedBuildCacheDir.shouldBeADirectory()
 
               val buildCacheSizeAfterDevPublish = expectedBuildCacheDir.recursiveFileSize()
@@ -111,10 +101,10 @@ class BuildCacheTest : FunSpec({
 
         createKotlinFile(
           "src/main/kotlin/FooClass.kt", """
-              class FooClass {
-                fun name() = "FooClass"
-              }
-            """.trimIndent()
+            |class FooClass {
+            |  fun name() = "FooClass"
+            |}
+            |""".trimMargin()
         )
       }
   }
