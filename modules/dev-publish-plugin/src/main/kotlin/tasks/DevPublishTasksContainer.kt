@@ -5,6 +5,7 @@ import dev.adamko.gradle.dev_publish.DevPublishPluginExtension
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.registerDeprecatedTask
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.Problems
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.register
@@ -15,6 +16,8 @@ class DevPublishTasksContainer(
   tasks: TaskContainer,
   private val devPubExtension: DevPublishPluginExtension,
   private val objects: ObjectFactory,
+  @Suppress("UnstableApiUsage")
+  private val problems: Problems,
 ) {
 
   /** Lifecycle task for publishing dev repos to the current subproject's dev repo. */
@@ -78,7 +81,8 @@ class DevPublishTasksContainer(
   private fun TaskContainer.registerGenerateDevPublishChecksumsLegacyAlias(): TaskProvider<BaseDevPublishTask> =
     registerDeprecatedTask(
       deprecatedName = GENERATE_PUBLICATION_CHECKSUM_TASK_NAME_LEGACY,
-      replacementName = generateDevPublishChecksums.name
+      replacementName = generateDevPublishChecksums.name,
+      problems = problems,
     )
 
   private fun TaskContainer.registerUpdateDevRepoTask(): TaskProvider<UpdateDevRepoTask> =
