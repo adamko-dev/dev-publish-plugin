@@ -17,6 +17,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
  *
  * @param[name] must match the publication name, [MavenPublication.getName]
  */
+@Deprecated("No longer used: Gradle's own up-to-date checks decide when to publish. Scheduled for removal in version 2.0.")
 abstract class PublicationData
 @Inject
 @DevPublishInternalApi
@@ -45,7 +46,6 @@ constructor(
    * @see MavenPublication.getArtifacts
    */
   @get:Internal
-  @Deprecated("No longer used. Scheduled for removal in version 2.0.0.")
   abstract val artifacts: ConfigurableFileCollection
 
   /**

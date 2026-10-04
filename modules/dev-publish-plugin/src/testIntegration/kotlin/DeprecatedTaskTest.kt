@@ -6,40 +6,46 @@ import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import kotlin.io.path.name
 import kotlin.io.path.readText
 
 /**
- * `generatePublicationHashTask` was renamed to `generateDevPublishChecksums`. The old name still
- * works, and reports the rename through the Problems API.
+ * `generatePublicationHashTask` is no longer used.
  */
-class DeprecatedTaskAliasTest : FunSpec({
+class DeprecatedTaskTest : FunSpec({
 
-  context("when the deprecated task name is used") {
+  context("when the deprecated task is used") {
     val project = project()
 
-    test("expect the task still runs, and the rename is reported") {
+    test("expect the task still runs, and the deprecation is reported") {
       project.runner
-        .withArguments(":generatePublicationHashTask", "--warning-mode=all")
+        // the deprecation is only reported when the task executes, not when it's up-to-date
+        .withArguments(":generatePublicationHashTask", "--rerun", "--warning-mode=all")
         .forwardOutput()
         .build {
-          shouldHaveRunTask(":generateDevPublishChecksums")
           shouldHaveRunTask(":generatePublicationHashTask")
 
           if (testedGradleVersion >= "9.0") {
-            output shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task-alias', was renamed to 'generateDevPublishChecksums'."
+            output shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task', is deprecated. It will be removed in DevPublish version 2.0."
           }
         }
     }
 
-    test("expect the rename is also reported as a structured problem") {
+    test("expect the deprecation is also reported as a structured problem") {
       val reportFile = project.projectDir.resolve("build/reports/problems/problems-report.html")
       val reportContent = reportFile.readText()
 
       withClue("the Problems API entry should be in ${reportFile.name}") {
         reportContent shouldContain "deprecated-task"
         reportContent shouldContain "DevPublish"
-        reportContent shouldContain "was renamed to"
+        reportContent shouldContain "is deprecated"
+      }
+    }
+
+    test("expect the task is hidden from the task list") {
+      project.runner.withArguments(":tasks").build {
+        output shouldNotContain "generatePublicationHashTask"
       }
     }
   }
@@ -49,7 +55,7 @@ class DeprecatedTaskAliasTest : FunSpec({
 
     private fun TestScope.project(): GradleProjectTest =
       gradleKtsProjectTest(
-        projectName = "deprecated-task-alias",
+        projectName = "deprecated-task",
         testProjectPath = testCase.descriptor.slashSeparatedPath(),
       ) {
         buildGradleKts = """
