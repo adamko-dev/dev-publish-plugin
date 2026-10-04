@@ -1,6 +1,5 @@
 package dev.adamko.gradle.dev_publish.tasks
 
-import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
 import dev.adamko.gradle.dev_publish.utils.info
@@ -18,6 +17,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 
+@Deprecated("No longer used: Gradle's own up-to-date checks decide when to publish. Scheduled for removal in version 2.0.")
 @DisableCachingByDefault(because = "Always re-compute checksums")
 abstract class GeneratePublicationDataChecksumTask
 @Inject
@@ -30,7 +30,7 @@ constructor(
 
   /** Pertinent data for all present Maven publications. */
   @get:Nested
-  abstract val publicationData: NamedDomainObjectContainer<PublicationData>
+  abstract val publicationData: NamedDomainObjectContainer<@Suppress("DEPRECATION") dev.adamko.gradle.dev_publish.data.PublicationData>
 
   /** @see dev.adamko.gradle.dev_publish.DevPublishPluginExtension.checksumsStore */
   @get:OutputDirectory

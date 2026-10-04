@@ -81,5 +81,6 @@ abstract class DevPublishPluginExtension
    * This value is intended for internal use and should not typically be configured in build scripts.
    */
   @DevPublishInternalApi
+  @Deprecated("No longer used: Gradle's own up-to-date checks decide when to publish. Scheduled for removal in version 2.0.")
   abstract val checksumsStore: DirectoryProperty
 }

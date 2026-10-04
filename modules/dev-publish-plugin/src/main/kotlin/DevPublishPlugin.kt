@@ -4,7 +4,6 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
-import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
 import dev.adamko.gradle.dev_publish.internal.failMissingSignatory
@@ -141,6 +140,7 @@ constructor(
 
       devMavenRepoMetadataDir.convention(tmpDir.map { it.dir("metadata") })
       stagingDevMavenRepo.convention(tmpDir.map { it.dir("staging") })
+      @Suppress("DEPRECATION")
       checksumsStore.convention(tmpDir.map { it.dir("checksum-store") })
       publicationsStore.convention(tmpDir.map { it.dir("publications-store") })
       dependency.convention(devPublishDependency)
@@ -196,7 +196,7 @@ constructor(
           name = DEV_PUB__MAVEN_REPO_NAME
         }
 
-        devPubTasks.generateDevPublishChecksums.configure {
+        devPubTasks.generatePublicationChecksum.configure {
           publicationData.addAllLater(providers.provider {
             publications
               .withType<MavenPublication>()
@@ -367,11 +367,12 @@ constructor(
     }
   }
 
-  /** Create an instance of [PublicationData] from [publication]. */
+  /** Create an instance of [dev.adamko.gradle.dev_publish.data.PublicationData] from [publication]. */
+  @Suppress("DEPRECATION")
   private fun createPublicationData(
     project: Project,
     publication: MavenPublication?,
-  ): PublicationData? {
+  ): dev.adamko.gradle.dev_publish.data.PublicationData? {
     if (publication == null) {
       logger.warn("cannot create PublicationData - MavenPublication is null")
       return null
@@ -381,7 +382,7 @@ constructor(
 
     val gmm = getGmm(project, publication)
 
-    return objects.newInstance<PublicationData>(publication.name).apply {
+    return objects.newInstance<dev.adamko.gradle.dev_publish.data.PublicationData>(publication.name).apply {
       this.identifier.set(identifier)
       this.gradleModuleMetadata.from(gmm)
     }

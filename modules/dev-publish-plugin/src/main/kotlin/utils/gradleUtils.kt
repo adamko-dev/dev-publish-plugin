@@ -12,11 +12,8 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.RelativePath
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.register
 import org.gradle.util.GradleVersion
 
 
@@ -110,25 +107,23 @@ internal val Project.groupProvider: Provider<String>
   get() = providers.provider { group.toString() }
 
 @Suppress("UnstableApiUsage")
-internal inline fun <reified T : Task> TaskContainer.registerDeprecatedTask(
-  deprecatedName: String,
-  replacementName: String,
+internal inline fun <reified T : Task> T.deprecateTask(
   problemsReporter: ProblemReporter,
-): TaskProvider<T> {
-  return register<T>(deprecatedName) {
-    description = "Deprecated. Use `$replacementName` instead."
-    group = null // hide the deprecated task from `gradle tasks`
+) {
+  val currentDescription = description.takeIf { !it.isNullOrBlank() }.orEmpty()
+  description = buildString {
+    append("Deprecated. ")
+    append(currentDescription)
+  }.trim()
+  group = null // hide the deprecated task from `gradle tasks`
 
-    dependsOn(replacementName)
+  val projectDisplayName = project.displayName
 
-    val projectDisplayName = project.displayName
-
-    doLast {
-      problemsReporter.report(deprecatedTaskProblemId) {
-        contextualLabel("Task '$path' is deprecated")
-        details("Task '$name', in $projectDisplayName, was renamed to '$replacementName'.")
-        solution("Use '$replacementName' instead of '$name'.")
-      }
+  doLast {
+    problemsReporter.report(deprecatedTaskProblemId) {
+      contextualLabel("Task '$path' is deprecated")
+      details("Task '$name', in $projectDisplayName, is deprecated. It will be removed in DevPublish version 2.0.")
+      solution("Remove all references to the task.")
     }
   }
 }
