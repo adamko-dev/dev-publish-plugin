@@ -232,8 +232,8 @@ constructor(
       .dir(publicationStore)
       .withPropertyName("devPubPublicationStore")
 
-    outputs.cacheIf("do not cache - this task only performs simple file modifications") { _ ->
-      false
+    outputs.doNotCacheIf("this task only performs simple file modifications") { _ ->
+      true
     }
 
     doFirst_("clear staging repo") {
