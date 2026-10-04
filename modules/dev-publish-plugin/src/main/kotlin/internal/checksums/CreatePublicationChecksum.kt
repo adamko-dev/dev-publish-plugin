@@ -1,5 +1,7 @@
 package dev.adamko.gradle.dev_publish.internal.checksums
 
+import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.relativeTo
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.*
@@ -27,9 +29,12 @@ internal abstract class CreatePublicationChecksum : ValueSource<String, CreatePu
   }
 
   private fun gradleModuleMetadataChecksums(): List<String> {
-    return parameters.gradleModuleMetadata
+    val projectDir = parameters.projectDir.get().asFile.toPath()
+    val gradleModuleMetadata = parameters.gradleModuleMetadata.map { it.toPath() }
+
+    return gradleModuleMetadata
       .map { gmm ->
-        val gmmPath = gmm.relativeTo(parameters.projectDir.get().asFile).invariantSeparatorsPath
+        val gmmPath = gmm.relativeTo(projectDir).invariantSeparatorsPathString
         "${gmmPath}$FileChecksumSeparator${gmm.checksum()}"
       }
       .sorted()
