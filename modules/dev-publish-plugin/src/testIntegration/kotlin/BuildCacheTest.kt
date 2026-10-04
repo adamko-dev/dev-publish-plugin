@@ -7,7 +7,10 @@ import io.kotest.core.test.TestScope
 import io.kotest.matchers.paths.shouldBeADirectory
 import io.kotest.matchers.shouldBe
 import java.nio.file.Path
-import kotlin.io.path.*
+import kotlin.io.path.fileSize
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.walk
+import org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildCacheTest : FunSpec({
 
@@ -59,6 +62,25 @@ class BuildCacheTest : FunSpec({
           }
       }
   }
+
+  context("when the dev repo is rebuilt with the same contents") {
+    val project = project()
+
+    test("populate generateDevPublishMetadata in build cache") {
+      project.runner
+        .withArguments(":generateDevPublishMetadata")
+        .build {
+          shouldHaveTaskWithAnyOutcome(":generateDevPublishMetadata", SUCCESS, FROM_CACHE, UP_TO_DATE)
+        }
+    }
+    test("expect generateDevPublishMetadata is loaded from build cache") {
+      project.runner
+        .withArguments("clean", ":generateDevPublishMetadata")
+        .build {
+          shouldHaveTaskWithOutcome(":generateDevPublishMetadata", FROM_CACHE)
+        }
+    }
+  }
 }) {
 
   companion object {
@@ -86,6 +108,14 @@ class BuildCacheTest : FunSpec({
           |    create<MavenPublication>("mavenJava") {
           |      from(components["java"])
           |    }
+          |  }
+          |}
+          |
+          |// Gradle 9+ archives are reproducible by default
+          |if (GradleVersion.current() < GradleVersion.version("9.0.0")) {
+          |  tasks.withType<AbstractArchiveTask>().configureEach {
+          |    isPreserveFileTimestamps = false
+          |    isReproducibleFileOrder = true
           |  }
           |}
           |""".trimMargin()

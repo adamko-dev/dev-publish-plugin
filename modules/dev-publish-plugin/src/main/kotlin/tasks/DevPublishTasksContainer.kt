@@ -69,6 +69,14 @@ class DevPublishTasksContainer(
 
       outputDirectory.convention(devPubExtension.devMavenRepoMetadataDir)
       devMavenRepo.convention(updateDevRepo.flatMap { it.devRepo })
+      devMavenRepoTrackedFiles.from(
+        devMavenRepo.zip(excludedDevMavenRepoFilePatterns) { repoDir, exclusions ->
+          repoDir.asFileTree
+            .matching {
+              exclude(exclusions)
+            }
+        }
+      )
       excludedDevMavenRepoFilePatterns.convention(
         setOf(
           "**/maven-metadata.xml*",
@@ -79,6 +87,9 @@ class DevPublishTasksContainer(
           "**/*.sha256",
           "**/*.sha512",
         )
+      )
+      stateDir.convention(
+        objects.directoryProperty().fileValue(temporaryDir.resolve("state"))
       )
     }
 
