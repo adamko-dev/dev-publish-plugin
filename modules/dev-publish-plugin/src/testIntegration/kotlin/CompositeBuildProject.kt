@@ -27,16 +27,6 @@ class CompositeBuildProject : FunSpec({
 
             mavenDevDir shouldBe ExpectedDevRepoTree
           }
-
-          test("expect included build generates checksums") {
-            val dataModelChecksums =
-              project.projectDir.resolve("data-model/build/tmp/.maven-dev/checksum-store").toTreeString()
-
-            dataModelChecksums shouldBe """
-              |checksum-store/
-              |└── mavenJava.txt
-              """.trimMargin()
-          }
         }
 
       context("lib updates dev repo after clean") {
@@ -53,16 +43,6 @@ class CompositeBuildProject : FunSpec({
                 .replace(Regex("""-\d{8}\.\d{6}-"""), "-{timestamp}-")
 
               mavenDevDir shouldBe ExpectedDevRepoTree
-            }
-
-            test("expect included build generates checksums") {
-              val dataModelChecksums =
-                project.projectDir.resolve("data-model/build/tmp/.maven-dev/checksum-store").toTreeString()
-
-              dataModelChecksums shouldBe """
-                |checksum-store/
-                |└── mavenJava.txt
-                """.trimMargin()
             }
           }
       }

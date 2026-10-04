@@ -4,8 +4,8 @@ import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestCaseOrder
 import io.kotest.core.test.TestScope
-import org.gradle.testkit.runner.TaskOutcome.SKIPPED
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class IncrementalBuildTest : FunSpec({
 
@@ -22,12 +22,12 @@ class IncrementalBuildTest : FunSpec({
         }
       }
 
-      test("2nd time - publish task should be SKIPPED") {
+      test("2nd time - publish task should be UP-TO-DATE") {
         project.runner
           .withArguments(":updateDevRepo", "--info")
           .forwardOutput()
           .build {
-            shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SKIPPED)
+            shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", UP_TO_DATE)
           }
       }
     }
@@ -59,12 +59,12 @@ class IncrementalBuildTest : FunSpec({
           }
       }
 
-      test("2nd time - publish task should be SKIPPED") {
+      test("2nd time - publish task should be UP-TO-DATE") {
         project.runner
           .withArguments(":updateDevRepo", "--info")
           .forwardOutput()
           .build {
-            shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SKIPPED)
+            shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", UP_TO_DATE)
           }
       }
     }
@@ -93,9 +93,9 @@ class IncrementalBuildTest : FunSpec({
       }
     }
 
-    test("2nd time - publish task should be SKIPPED") {
+    test("2nd time - publish task should be UP-TO-DATE") {
       project.runner.withArguments(":updateDevRepo").build {
-        shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", SKIPPED)
+        shouldHaveTaskWithOutcome(":publishMavenJavaPublicationToDevPublishMavenRepository", UP_TO_DATE)
       }
     }
   }

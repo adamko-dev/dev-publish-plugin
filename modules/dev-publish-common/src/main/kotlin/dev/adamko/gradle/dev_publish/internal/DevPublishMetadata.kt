@@ -13,4 +13,11 @@ object DevPublishMetadata {
    * The path is relative to the _parent directory_ of the metadata file.
    */
   const val REPO_LOCATION_FILE_NAME = "dev.publish.metadata.repo-location.txt"
+
+  /**
+   * File containing a checksum of the dev-maven repo.
+   *
+   * Never read. It's on the test runtime classpath so tests re-run when the repo changes.
+   */
+  const val REPO_CHECKSUM_FILE_NAME = "dev.publish.metadata.repo-checksum.txt"
 }

@@ -52,9 +52,6 @@ class DevPublishTasksContainer(
         // provider property, so checking via the task name will have to do:
         project.tasks.matching { it.name == "publishAllPublicationsTo${DEV_PUB__MAVEN_REPO_NAME}Repository" }
       )
-
-      // always auto-refresh stored checksums
-      finalizedBy(generateDevPublishChecksums)
     }
 
   private fun TaskContainer.registerGenerateDevPublishChecksumsTask(): TaskProvider<GeneratePublicationDataChecksumTask> =
@@ -73,8 +70,17 @@ class DevPublishTasksContainer(
 
       outputDirectory.convention(devPubExtension.devMavenRepoMetadataDir)
       devMavenRepo.convention(updateDevRepo.flatMap { it.devRepo })
-      @Suppress("UnstableApiUsage")
-      rootProjectDir.convention(project.isolated.rootProject.projectDirectory)
+      excludedDevMavenRepoFilePatterns.convention(
+        setOf(
+          "**/maven-metadata.xml*",
+          "**/*.asc",
+          "**/*.sig",
+          "**/*.md5",
+          "**/*.sha1",
+          "**/*.sha256",
+          "**/*.sha512",
+        )
+      )
     }
 
   @Suppress("DEPRECATION")
@@ -92,9 +98,6 @@ class DevPublishTasksContainer(
       devRepo.set(devPubExtension.devMavenRepo)
 
       dependsOn(publishAllToDevRepo)
-
-      // always auto-refresh stored checksums
-      finalizedBy(generateDevPublishChecksums)
     }
 
   @DevPublishInternalApi
