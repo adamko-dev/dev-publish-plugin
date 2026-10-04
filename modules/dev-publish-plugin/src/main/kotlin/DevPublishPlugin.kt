@@ -7,9 +7,6 @@ import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.data.PublicationData
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
-import dev.adamko.gradle.dev_publish.internal.checksums.CreatePublicationChecksum.Companion.createPublicationChecksum
-import dev.adamko.gradle.dev_publish.internal.checksums.LoadPublicationChecksum.Companion.loadPublicationChecksum
-import dev.adamko.gradle.dev_publish.internal.checksums.checksumsToDebugString
 import dev.adamko.gradle.dev_publish.internal.failMissingSignatory
 import dev.adamko.gradle.dev_publish.internal.reportSigningExtensionNotExtensionAware
 import dev.adamko.gradle.dev_publish.services.DevPublishService
@@ -40,7 +37,6 @@ import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.publish.tasks.GenerateModuleMetadata
 import org.gradle.api.services.BuildServiceRegistry
-import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
@@ -225,60 +221,16 @@ constructor(
 
     val stagingDevMavenRepo = devPubExtension.stagingDevMavenRepo
     val publicationStore = devPubExtension.publicationsStore.dir(this@configurePublishToMavenRepositoryTask.name)
-    val checksumsStore = devPubExtension.checksumsStore
 
     // need to determine the repo lazily because the repo isn't set immediately
     val repoIsDevPub = providers.provider { repository?.name == DEV_PUB__MAVEN_REPO_NAME }.orElse(false)
     inputs.property("repoIsDevPub", repoIsDevPub)
 
-    inputs
-      // Must convert to FileTree, because the directory might not exist, and
-      // Gradle won't accept directories that don't exist as inputs.
-      .files(checksumsStore.asFileTree)
-      .withPropertyName("devPubChecksumsStoreFiles")
-      .withPathSensitivity(RELATIVE)
-
+    // Gradle already tracks every publishable file as an input,
+    // so declaring an output is enough to make the task up-to-date when the publication is unchanged.
     outputs
       .dir(publicationStore)
       .withPropertyName("devPubPublicationStore")
-
-    val currentProjectDir = layout.projectDirectory
-
-    val publicationData = providers.provider {
-      createPublicationData(
-        project = project,
-        publication = publication,
-      )
-    }
-
-    inputs.files(publicationData.map { it.gradleModuleMetadata })
-      .withPropertyName("devPubGradleModuleMetadata")
-      .withPathSensitivity(RELATIVE)
-
-    val currentChecksum = providers.createPublicationChecksum {
-      this.projectDir.set(currentProjectDir)
-      this.identifier.set(publicationData.flatMap { it.identifier })
-      this.gradleModuleMetadata.from(publicationData.map { it.gradleModuleMetadata })
-    }
-
-    val storedChecksum = providers.loadPublicationChecksum {
-      this.checksumFilename.set(publicationData.map { it.checksumFilename })
-      this.checksumsStore.set(checksumsStore)
-    }
-
-    onlyIf_("current checksums don't match stored checksum") {
-      if (!repoIsDevPub.get()) {
-        true
-      } else {
-        val enabled = currentChecksum.orNull != storedChecksum.orNull
-        logger.info {
-          val checksums = checksumsToDebugString(currentChecksum, storedChecksum).prependIndent("  ")
-          val match = if (!enabled) "match" else "do not match"
-          "[$path] currentChecksum and storedChecksum $match\n${checksums}"
-        }
-        enabled
-      }
-    }
 
     outputs.cacheIf("do not cache - this task only performs simple file modifications") { _ ->
       false
@@ -410,7 +362,6 @@ constructor(
     project.plugins.withType<LifecycleBasePlugin>().configureEach {
       project.tasks.named(CHECK_TASK_NAME).configure {
         mustRunAfter(devPubTasks.publishAllToDevRepo)
-        mustRunAfter(devPubTasks.generateDevPublishChecksums)
         mustRunAfter(devPubTasks.updateDevRepo)
       }
     }

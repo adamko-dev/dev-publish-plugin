@@ -5,8 +5,8 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldNotContain
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.*
 import kotlin.io.path.readText
 import org.gradle.testkit.runner.TaskOutcome.*
 
@@ -42,6 +42,22 @@ class DevMavenRepoDependencyTest : FunSpec({
           repoLocation shouldBe "../../../maven-dev"
           repoLocation shouldNotContain project.projectDir.toString()
           repoLocation shouldNotContain ":\\"
+        }
+      }
+    }
+
+    test("expect a checksum of the repo contents") {
+      project.runner.withArguments(":generateDevPublishMetadata").forwardOutput().build {
+        val repoChecksum = project.projectDir
+          .resolve("build/tmp/.maven-dev/metadata/dev.publish.metadata.repo-checksum.txt")
+          .readText()
+          .trim()
+
+        assertSoftly {
+          repoChecksum shouldNotBe "no-files"
+          repoChecksum.shouldBeSingleLine()
+          repoChecksum shouldHaveLength 64 // SHA-256 checksum length
+          repoChecksum.shouldBeHexadecimal()
         }
       }
     }
@@ -113,5 +129,9 @@ class DevMavenRepoDependencyTest : FunSpec({
             |""".trimMargin()
         )
       }
+
+    private fun CharSequence.shouldBeHexadecimal() {
+      this shouldMatch Regex("[0-9a-fA-F]+")
+    }
   }
 }
