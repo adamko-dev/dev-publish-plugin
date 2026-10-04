@@ -94,7 +94,7 @@ class BuildCacheTest : FunSpec({
           |  
           |buildCache {
           |  local {
-          |    directory = file("local-cache").toURI()
+          |    directory = file("local-cache")
           |  }
           |}
           |""".trimMargin()
