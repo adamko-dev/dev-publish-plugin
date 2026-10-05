@@ -7,6 +7,7 @@ import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
 import dev.adamko.gradle.dev_publish.internal.failMissingSignatory
+import dev.adamko.gradle.dev_publish.internal.reportPublicationNotSet
 import dev.adamko.gradle.dev_publish.internal.reportSigningExtensionNotExtensionAware
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
@@ -374,7 +375,7 @@ constructor(
     publication: MavenPublication?,
   ): dev.adamko.gradle.dev_publish.data.PublicationData? {
     if (publication == null) {
-      logger.warn("cannot create PublicationData - MavenPublication is null")
+      problemsReporter.reportPublicationNotSet()
       return null
     }
 

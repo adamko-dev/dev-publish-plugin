@@ -6,6 +6,7 @@ import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.internal.DevPublishMetadata.REPO_CHECKSUM_FILE_NAME
 import dev.adamko.gradle.dev_publish.internal.DevPublishMetadata.REPO_LOCATION_FILE_NAME
 import dev.adamko.gradle.dev_publish.internal.checksums.checksum
+import dev.adamko.gradle.dev_publish.internal.failDevMavenRepoNotRelative
 import dev.adamko.gradle.dev_publish.utils.nullOutputStream
 import java.nio.file.Path
 import java.security.DigestOutputStream
@@ -16,6 +17,8 @@ import kotlin.io.path.*
 import kotlin.text.Charsets.UTF_8
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.problems.ProblemReporter
+import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.*
@@ -40,7 +43,11 @@ import org.gradle.work.InputChanges
 abstract class GenerateDevPublishMetadataTask
 @Inject
 @DevPublishInternalApi
-constructor() : BaseDevPublishTask() {
+constructor(
+  problems: Problems,
+) : BaseDevPublishTask() {
+
+  private val problemsReporter: ProblemReporter = problems.reporter
 
   @get:OutputDirectory
   abstract val outputDirectory: DirectoryProperty
@@ -83,7 +90,10 @@ constructor() : BaseDevPublishTask() {
       val baseDir = metadataDir.asFile.resolve(REPO_LOCATION_FILE_NAME).normalize().parentFile
       val repoDir = devMavenRepo.asFile
       val relative = repoDir.relativeToOrNull(baseDir)
-        ?: error("devMavenRepo is not relative to metadataDir: $devMavenRepo, $metadataDir")
+        ?: problemsReporter.failDevMavenRepoNotRelative(
+          devMavenRepo = repoDir,
+          metadataDir = baseDir,
+        )
       relative.invariantSeparatorsPath
     }
 
