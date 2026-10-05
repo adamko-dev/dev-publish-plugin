@@ -3,6 +3,7 @@
 package dev.adamko.gradle.dev_publish.internal
 
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.SIGNING__EXTERNAL_PUBLISHING_PROPERTY
+import java.io.File
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
@@ -15,8 +16,18 @@ internal val DevPublishProblemGroup: ProblemGroup =
 internal val deprecatedTaskProblemId: ProblemId =
   ProblemId.create("deprecated-task", "Deprecated task", DevPublishProblemGroup)
 
+internal val devMavenRepoNotRelativeProblemId: ProblemId =
+  ProblemId.create(
+    "dev-maven-repo-not-relative",
+    "Dev Maven repository has no relative path",
+    DevPublishProblemGroup,
+  )
+
 internal val missingSignatoryProblemId: ProblemId =
   ProblemId.create("missing-signatory", "Missing signatory", DevPublishProblemGroup)
+
+internal val publicationNotSetProblemId: ProblemId =
+  ProblemId.create("publication-not-set", "Publication not set", DevPublishProblemGroup)
 
 internal val signingExtensionNotExtensionAwareProblemId: ProblemId =
   ProblemId.create(
@@ -24,6 +35,60 @@ internal val signingExtensionNotExtensionAwareProblemId: ProblemId =
     "Signing extension is not extension-aware",
     DevPublishProblemGroup,
   )
+
+/**
+ * Fail because the dev Maven repository has no path relative to the metadata directory, so its
+ * location cannot be recorded.
+ *
+ * Thrown rather than reported, because the metadata file cannot be written at all.
+ */
+internal fun ProblemReporter.failDevMavenRepoNotRelative(
+  devMavenRepo: File,
+  metadataDir: File,
+): Nothing {
+  val setDevMavenRepo =
+    "Set devPublish.devMavenRepo to a location under the same root as the build directory."
+
+  throw throwing(InvalidUserDataException(), devMavenRepoNotRelativeProblemId) {
+    contextualLabel("The dev Maven repository has no path relative to the metadata directory")
+    details(
+      """
+      |DevPublish records the dev Maven repository's location relative to the metadata file, so the
+      |recorded path is the same on every machine and checkout, and the test tasks that read it stay
+      |relocatable for the build cache.
+      |
+      |    dev Maven repository: ${devMavenRepo.invariantSeparatorsPath}
+      |    metadata directory:   ${metadataDir.invariantSeparatorsPath}
+      |
+      |There is no relative path between these two, so the location cannot be recorded.
+      |""".trimMargin()
+    )
+    solution(setDevMavenRepo)
+  }
+}
+
+/**
+ * Warn that a publishing task has no [org.gradle.api.publish.maven.MavenPublication], so DevPublish
+ * cannot record it.
+ *
+ * Reported, not thrown: the publication is skipped and the rest of the build still works.
+ */
+internal fun ProblemReporter.reportPublicationNotSet() {
+  report(publicationNotSetProblemId) {
+    contextualLabel("Publishing task has no MavenPublication")
+    details(
+      """
+      |DevPublish records each Maven publication, so it can tell when one has changed and must be
+      |re-published to the dev Maven repository. A publishing task with no publication cannot be
+      |recorded, and is skipped, so the DevPublish Maven repository may be missing artifacts.
+      |
+      |A publishing task normally always has a publication, so this is unexpected.
+      |""".trimMargin()
+    )
+    solution("Check for a publishing task that was created without a publication.")
+    solution("Report the issue to https://github.com/adamko-dev/dev-publish-plugin.")
+  }
+}
 
 internal fun ProblemReporter.reportSigningExtensionNotExtensionAware() {
   report(signingExtensionNotExtensionAwareProblemId) {
