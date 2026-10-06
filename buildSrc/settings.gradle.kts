@@ -5,6 +5,7 @@ pluginManagement {
     mavenCentral()
     gradlePluginPortal()
     maven("https://central.sonatype.com/repository/maven-snapshots/") {
+      name = "MavenCentralSnapshots"
       mavenContent { snapshotsOnly() }
     }
   }
@@ -21,6 +22,7 @@ dependencyResolutionManagement {
     mavenCentral()
     gradlePluginPortal()
     maven("https://central.sonatype.com/repository/maven-snapshots/") {
+      name = "MavenCentralSnapshots"
       mavenContent { snapshotsOnly() }
     }
   }
@@ -33,4 +35,3 @@ dependencyResolutionManagement {
 }
 
 enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-
