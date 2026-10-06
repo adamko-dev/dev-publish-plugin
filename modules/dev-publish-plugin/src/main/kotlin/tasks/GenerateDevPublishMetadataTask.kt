@@ -39,7 +39,6 @@ import org.gradle.work.InputChanges
  * @see dev.adamko.gradle.dev_publish.internal.DevPublishMetadata.REPO_CHECKSUM_FILE_NAME
  */
 @CacheableTask
-@DevPublishInternalApi
 abstract class GenerateDevPublishMetadataTask
 @Inject
 @DevPublishInternalApi
