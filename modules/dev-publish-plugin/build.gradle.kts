@@ -72,6 +72,13 @@ gradlePlugin {
 val testMavenRepoDir: Directory = isolated.rootProject.projectDirectory.dir("build/test-maven-repo")
 val projectTestTempDir: Provider<Directory> = layout.buildDirectory.dir("project-tests")
 
+/** The `examples/` projects. */
+val exampleFiles: FileCollection =
+  isolated.rootProject.projectDirectory.dir("examples").asFileTree
+
+/** The version being built, so a test can check the version that `examples/` pins. */
+val devPublishVersion: Provider<String> = provider { project.version.toString() }
+
 publishing {
   repositories {
     maven(testMavenRepoDir) {
@@ -89,9 +96,14 @@ testing {
   val testIntegration by suites.registering(JvmTestSuite::class) {
     dependencies {
       implementation(testFixtures(project()))
+      implementation(projects.modules.devPublishUtils)
     }
     targets.configureEach {
       testTask.configure {
+        inputs.files(exampleFiles)
+          .withPropertyName("exampleFiles")
+          .withPathSensitivity(PathSensitivity.RELATIVE)
+        systemProperty("devPublishVersion", devPublishVersion.get())
         dependsOn("publishAllPublicationsToTestMavenRepoRepository")
         dependsOn(":modules:dev-publish-common:publishAllPublicationsToTestMavenRepoRepository")
         dependsOn(":modules:dev-publish-utils:publishAllPublicationsToTestMavenRepoRepository")
@@ -114,8 +126,27 @@ testing {
       }
     }
   }
+  val testDocs by suites.registering(JvmTestSuite::class) {
+    dependencies {
+      implementation(testFixtures(project()))
+    }
+    targets.configureEach {
+      testTask.configure {
+        description = "Checks the docs."
+        inputs.files(isolated.rootProject.projectDirectory.asFileTree.matching {
+          include("**/*.md")
+          exclude("**/build/**", "**/.gradle/**", "**/.git/**")
+        })
+          .withPropertyName("docsFiles")
+          .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.files(exampleFiles)
+          .withPropertyName("exampleFiles")
+          .withPathSensitivity(PathSensitivity.RELATIVE)
+      }
+    }
+  }
   tasks.check {
-    dependsOn(testIntegration)
+    dependsOn(testIntegration, testDocs)
   }
 }
 

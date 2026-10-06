@@ -14,7 +14,7 @@
 .env              text
 
 # Documentation
-*.md              text diff=markdown
+*.md              text eol=lf diff=markdown
 *.txt             text
 LICENSE           text
 
