@@ -80,6 +80,9 @@ class GradleProjectTest(
 
     val projectTestTempDir: Path by systemProperty(Paths::get)
 
+    /** The DevPublish version being built, e.g. `1.2.0-SNAPSHOT`. */
+    val devPublishVersion: String by systemProperty()
+
     /** Temporary directory for the functional tests */
     val funcTestTempDir: Path by lazy {
       projectTestTempDir.resolve("functional-tests")

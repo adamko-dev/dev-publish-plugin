@@ -66,5 +66,9 @@ Icon
 .gradle
 build/
 
+examples/*/gradlew
+examples/*/gradlew.bat
+examples/*/gradle/wrapper/
+
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
