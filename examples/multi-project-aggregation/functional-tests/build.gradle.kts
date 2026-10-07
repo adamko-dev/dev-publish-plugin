@@ -9,7 +9,7 @@ dependencies {
 
   testImplementation(kotlin("test"))
 
-  // Makes the `test` source set depend on dev publishing.
+  // Makes the `test` source set depend all projects declared as `devPublication()`.
   testImplementation(devPublish.dependency())
 }
 

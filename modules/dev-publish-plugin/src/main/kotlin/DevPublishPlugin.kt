@@ -102,6 +102,12 @@ constructor(
       }
     }
 
+    devPubConfigurations.devPublicationDependencies.configure {
+      defaultDependencies {
+        add(createProjectDependency(project))
+      }
+    }
+
     configureDevMavenRepoMetadata(
       project = project,
       devPubExtension = devPubExtension,

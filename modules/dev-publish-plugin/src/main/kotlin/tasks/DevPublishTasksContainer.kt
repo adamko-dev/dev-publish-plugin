@@ -96,10 +96,7 @@ class DevPublishTasksContainer(
   private fun TaskContainer.registerUpdateDevRepoTask(): TaskProvider<UpdateDevRepoTask> =
     register<UpdateDevRepoTask>(UPDATE_DEV_REPO_TASK_NAME) {
       description = "Updates the dev-repo"
-      publicationsStore.set(devPubExtension.publicationsStore)
       devRepo.set(devPubExtension.devMavenRepo)
-
-      dependsOn(publishAllToDevRepo)
     }
 
   @DevPublishInternalApi
