@@ -2,15 +2,25 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.test_utils.*
 import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.settingRepositories
+import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.testedGradleVersion
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
+import org.gradle.util.GradleVersion
 import org.intellij.lang.annotations.Language
 
 class CompositeBuildProject : FunSpec({
 
   context("test composite build project") {
     val project = project()
+
+    if (testedGradleVersion < GradleVersion.version("9.5.0")) {
+      var libBuildscript by project.dir("lib")::buildGradleKts
+      libBuildscript = libBuildscript.replace(
+        "devPublication(project())",
+        """devPublication(project(":lib"))""",
+      )
+    }
 
     context("when lib updates dev repo") {
       project.runner
@@ -125,6 +135,7 @@ class CompositeBuildProject : FunSpec({
             |
             |dependencies {
             |  implementation("demo:data-model")
+            |  devPublication(project())
             |  devPublication("demo:data-model")
             |}
             |

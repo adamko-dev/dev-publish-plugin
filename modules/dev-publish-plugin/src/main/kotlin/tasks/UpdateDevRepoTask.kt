@@ -6,7 +6,6 @@ import java.io.File
 import javax.inject.Inject
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
@@ -20,27 +19,6 @@ abstract class UpdateDevRepoTask
 constructor(
   private val fs: FileSystemOperations,
 ) : BaseDevPublishTask() {
-
-  /**
-   * Input repo.
-   *
-   * @see dev.adamko.gradle.dev_publish.DevPublishPluginExtension.stagingDevMavenRepo
-   */
-  @get:Internal
-  abstract val publicationsStore: DirectoryProperty
-
-  /**
-   * [publicationsStore] is marked as [Internal] as a workaround for 'input directory does not exist' problem.
-   *
-   * https://docs.gradle.org/9.8.0/userguide/validation_problems.html#input_file_does_not_exist
-   *
-   * This property exists so Gradle will still be able to detect the inputs using [InputFiles].
-   */
-  @get:InputFiles
-  @get:PathSensitive(RELATIVE)
-  @DevPublishInternalApi
-  protected val publicationsStoreFiles: FileCollection
-    get() = publicationsStore.asFileTree
 
   /**
    * Additional files to include in [devRepo].
@@ -59,6 +37,16 @@ constructor(
   @get:OutputDirectory
   abstract val devRepo: DirectoryProperty
 
+  //region deprecated
+  /**
+   * Input repo.
+   *
+   * @see dev.adamko.gradle.dev_publish.DevPublishPluginExtension.stagingDevMavenRepo
+   */
+  @get:Internal
+  @Deprecated("No longer used: repositories are collected using configurations. Scheduled for removal in version 2.0.")
+  abstract val publicationsStore: DirectoryProperty
+
   /** @see repositoryContents */
   @Deprecated(
     "This helper function will be removed and can be replaced with adding files into `repositoryContents`",
@@ -67,16 +55,12 @@ constructor(
   open fun from(files: Provider<Iterable<File>>) {
     repositoryContents.from(files)
   }
+  //endregion
 
   @TaskAction
   @DevPublishInternalApi
   fun updateDevRepo() {
     fs.sync {
-      from(publicationsStore) {
-        eachFile {
-          relativePath = relativePath.dropDirectory()
-        }
-      }
       from(repositoryContents) {
         eachFile {
           relativePath = relativePath.dropDirectory()

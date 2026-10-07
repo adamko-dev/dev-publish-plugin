@@ -6,11 +6,12 @@
 [Dev Publish](https://github.com/adamko-dev/dev-publish-plugin) is a [Gradle](https://gradle.org/) plugin
 that supports functional testing of a published module.
 
-Each subproject is published to a local file-based Maven repository, containing real publications
-(Gradle Module Metadata, Plugin Marker Artifacts, checksums) that your tests can resolve.
+Each subproject is published to a local file-based Maven repository, containing real publications (Gradle Module
+Metadata, Plugin Marker Artifacts, checksums) that your tests can resolve.
 
 * A project-local repository for testing only your publications, instead of Maven Local.\
-  [*"You should avoid adding mavenLocal () as a repository"*](https://docs.gradle.org/9.7.1/userguide/supported_repository_types.html#sec:case-for-maven-local).
+  [*"You should avoid adding mavenLocal () as a
+  repository"*](https://docs.gradle.org/9.7.1/userguide/supported_repository_types.html#sec:case-for-maven-local).
 * Perfect for testing Gradle plugins and
   [Plugin Marker Artifacts](https://docs.gradle.org/9.7.1/userguide/plugins_intermediate.html#sec:plugin_markers),
   instead of [TestKit +
@@ -73,7 +74,7 @@ dependencies {
 
   testImplementation(kotlin("test"))
 
-  // Makes the `test` source set depend on dev publishing.
+  // Makes the `test` source set depend all projects declared as `devPublication()`.
   testImplementation(devPublish.dependency())
 }
 ```
@@ -83,6 +84,37 @@ dependencies {
 
 Declaring `devPublish.dependency()` runs `updateDevRepo` before the tests, puts the dev Maven
 repository location on their runtime classpath, and adds `dev-publish-utils` for reading it.
+
+> [!IMPORTANT]
+> DevPublish adds the current project as a default `devPublication()` dependency.
+> Adding another `devPublication()` dependency will replace the default,
+> so a project that collects other projects and also wants its own publications must declare itself as well.
+>
+> For example, in `:lib-extras`:
+>
+> ```kotlin
+> // lib-extras/build.gradle.kts
+> dependencies {
+>   devPublication(project(":lib-core")) // some other subproject.
+>   // must re-add this project, if it's required for testing.
+>   devPublication(project())
+> }
+> ```
+> This lets a project collect other projects while leaving out its own publications, such as a
+> test-only project like `:functional-tests` above.
+>
+> <details>
+> <summary>Note: Gradle 9.4 or below must use project's own path, because <code>project()</code> is only available on Gradle 9.5+.</summary>
+>
+> ```kotlin
+> // lib-extras/build.gradle.kts
+> dependencies {
+>   devPublication(project(":lib-core")) // some other subproject.
+>   // must re-add this project, if it's required for testing.
+>   devPublication(project(":lib-extras"))
+> }
+> ```
+> </details>
 
 `devPublication` dependencies are shared with consumers. If `:lib-extras` declares
 `devPublication(project(":lib-core"))`, then anyone declaring `devPublication(project(":lib-extras"))`
@@ -195,9 +227,9 @@ signing {
 Combine it with your own conditions if you have them:
 
 ```kotlin
-val signingCredentialsPresent: Property<Boolean> = /*...*/
+val signingCredentialsPresent: Property<Boolean> = TODO("check if credentials are present")
 
-  signing {
+signing {
   setRequired { publishingOutsideDevRepo.get() || signingCredentialsPresent.get() }
 }
 ```
