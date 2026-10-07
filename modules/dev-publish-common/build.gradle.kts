@@ -4,17 +4,10 @@ import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
   buildsrc.conventions.`kotlin-jvm-library`
+  id("dev.adamko.dev-publish")
 }
 
 description = "Common code shared between DevPublish libraries."
-
-publishing {
-  repositories {
-    maven(isolated.rootProject.projectDirectory.dir("build/test-maven-repo")) {
-      name = "TestMavenRepo"
-    }
-  }
-}
 
 kotlin {
   compilerOptions {

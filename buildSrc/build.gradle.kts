@@ -11,4 +11,7 @@ dependencies {
   implementation(libs.gradlePlugin.pluginPublishPlugin)
   implementation(libs.gradlePlugin.nmcp)
   implementation(gradleKotlinAccessorsLibs.accessors)
+
+  implementation(libs.devPublishBootstrap.plugin)
+  implementation(libs.devPublishBootstrap.common)
 }

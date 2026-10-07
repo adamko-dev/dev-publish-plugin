@@ -9,19 +9,33 @@ import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
   buildsrc.conventions.`kotlin-gradle-plugin`
+  buildsrc.conventions.`dev-publish-bootstrap`
   `java-test-fixtures`
+  id("dev.adamko.dev-publish")
 }
 
 dependencies {
   implementation(projects.modules.devPublishCommon)
 
-  testFixturesImplementation(projects.modules.devPublishCommon)
+  devPublication(project())
+  devPublication(projects.modules.devPublishCommon)
+  devPublication(projects.modules.devPublishUtils)
+
+  devPublishUtils(devPublishBootstrap.bootstrapDevPublishJars)
+  testFixturesImplementation(devPublishBootstrap.bootstrapDevPublishJars)
 
   testFixturesApi(gradleTestKit())
   testFixturesApi(platform(libs.kotest.bom))
   testFixturesApi(libs.kotest.runnerJUnit5)
   testFixturesApi(libs.kotest.assertionsCore)
 }
+
+devPublishBootstrap.modules = setOf(
+  "dev-publish-common",
+  "dev-publish-utils",
+  // exclude the plugin itself, so it doesn't shadow this project's classes in tests
+  //"dev-publish-plugin",
+)
 
 kotlin {
   compilerOptions {
@@ -69,7 +83,6 @@ gradlePlugin {
   }
 }
 
-val testMavenRepoDir: Directory = isolated.rootProject.projectDirectory.dir("build/test-maven-repo")
 val projectTestTempDir: Provider<Directory> = layout.buildDirectory.dir("project-tests")
 
 /** The `examples/` projects. */
@@ -78,14 +91,6 @@ val exampleFiles: FileCollection =
 
 /** The version being built, so a test can check the version that `examples/` pins. */
 val devPublishVersion: Provider<String> = provider { project.version.toString() }
-
-publishing {
-  repositories {
-    maven(testMavenRepoDir) {
-      name = "TestMavenRepo"
-    }
-  }
-}
 
 skipTestFixturesPublications()
 
@@ -96,7 +101,7 @@ testing {
   val testIntegration by suites.registering(JvmTestSuite::class) {
     dependencies {
       implementation(testFixtures(project()))
-      implementation(projects.modules.devPublishUtils)
+      implementation(devPublish.dependency())
     }
     targets.configureEach {
       testTask.configure {
@@ -104,11 +109,7 @@ testing {
           .withPropertyName("exampleFiles")
           .withPathSensitivity(PathSensitivity.RELATIVE)
         systemProperty("devPublishVersion", devPublishVersion.get())
-        dependsOn("publishAllPublicationsToTestMavenRepoRepository")
-        dependsOn(":modules:dev-publish-common:publishAllPublicationsToTestMavenRepoRepository")
-        dependsOn(":modules:dev-publish-utils:publishAllPublicationsToTestMavenRepoRepository")
         systemProperty("hostGradleUserHome", gradle.gradleUserHomeDir.invariantSeparatorsPath)
-        systemProperty("testMavenRepoDir", testMavenRepoDir.asFile.invariantSeparatorsPath)
         systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
         systemProperty("testedGradleVersion", GradleVersion.current().version)
       }

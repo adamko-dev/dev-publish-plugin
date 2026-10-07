@@ -1,5 +1,6 @@
 package dev.adamko.gradle.dev_publish.test_utils
 
+import dev.adamko.gradle.dev_publish.devMavenRepo
 import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.settingRepositories
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -39,7 +40,7 @@ class GradleProjectTest(
     val testedGradleVersion: GradleVersion by systemProperty(GradleVersion::version)
 
     /** file-based Maven Repo that contains the published plugin */
-    private val testMavenRepoDir: Path by systemProperty(Paths::get)
+    private val testMavenRepoDir: Path by lazy { devMavenRepo() }
 
     val testMavenRepoPathString: String
       get() = testMavenRepoDir

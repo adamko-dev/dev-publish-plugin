@@ -49,6 +49,16 @@ DevPublish version. A `// ...` line marks lines that were left out; each part mu
 in the file. Nothing marks the region in the example itself: the examples are published for people to
 read as-is, so they are kept free of tags that only mean something to this test.
 
+## Bootstrap
+
+This build uses DevPublish to test DevPublish. The version it uses is pinned by the
+`devPublishBootstrap-*` libraries in `gradle/libs.versions.toml`.
+
+The pinned versions are timestamped snapshots, which Maven Central deletes after 90 days. To update
+them, copy the `<value>` of each module's latest `jar` from its `maven-metadata.xml`, for example
+https://central.sonatype.com/repository/maven-snapshots/dev/adamko/gradle/dev-publish-plugin/1.2.0-SNAPSHOT/maven-metadata.xml.
+The build number differs per module.
+
 ## Releasing
 
 1. Update `version` in `gradle.properties`, and the DevPublish version pinned in `examples/`

@@ -100,7 +100,7 @@ class ExamplesTest : FunSpec({
    *
    * The checked-in examples are exactly what a reader should copy, so they carry none of this: they
    * resolve DevPublish the way any other project would. Only the copy this test builds is
-   * redirected at `build/test-maven-repo`.
+   * redirected at the dev Maven repo.
    */
   fun Path.addLocalDevPublishRepo() {
     val settingsFile = this / "settings.gradle.kts"
