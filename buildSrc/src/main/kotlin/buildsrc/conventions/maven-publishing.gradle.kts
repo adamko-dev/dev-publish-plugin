@@ -18,8 +18,8 @@ val mavenPublishing =
 publishing {
   publications.withType<MavenPublication>().configureEach {
     pom {
-      name.convention("Dev Publish Gradle Plugin")
-      description.convention("Dev Publish is a Gradle plugin that publishes subprojects to a project-local directory, ready for functional testing.")
+      name.convention("DevPublish Gradle Plugin")
+      description.convention("DevPublish is a Gradle plugin that publishes subprojects to a project-local directory, ready for functional testing.")
       url.convention("https://github.com/adamko-dev/dev-publish-plugin")
 
       scm {
