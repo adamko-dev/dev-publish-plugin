@@ -45,8 +45,8 @@ dependencies {
 Only the `[here](...)` link is read, so the quote could wrap over several lines.
 
 The snippet must be a contiguous run of lines from that file, ignoring indentation and the
-DevPublish version. A `// ...` line marks lines that were left out; each part must still appear in
-order. Nothing marks the region in the example itself: the examples are published for people to
+DevPublish version. A `// ...` line marks lines that were left out; each part must appear somewhere
+in the file. Nothing marks the region in the example itself: the examples are published for people to
 read as-is, so they are kept free of tags that only mean something to this test.
 
 ## Releasing
