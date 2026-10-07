@@ -1,9 +1,9 @@
 [![GitHub license](https://img.shields.io/github/license/adamko-dev/dev-publish-plugin?style=for-the-badge)](https://github.com/adamko-dev/dev-publish-plugin/blob/main/LICENSE)
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.adamko.dev-publish?logo=gradle&style=for-the-badge)](https://plugins.gradle.org/plugin/dev.adamko.dev-publish)
 
-# Dev Publish Gradle Plugin
+# DevPublish Gradle Plugin
 
-[Dev Publish](https://github.com/adamko-dev/dev-publish-plugin) is a [Gradle](https://gradle.org/) plugin
+[DevPublish](https://github.com/adamko-dev/dev-publish-plugin) is a [Gradle](https://gradle.org/) plugin
 that supports functional testing of a published module.
 
 Each subproject is published to a local file-based Maven repository, containing real publications (Gradle Module
@@ -31,7 +31,7 @@ Metadata, Plugin Marker Artifacts, checksums) that your tests can resolve.
 
 ## Quick Start
 
-Apply `maven-publish` and Dev Publish to any subproject that publishes Maven artifacts, using the
+Apply `maven-publish` and DevPublish to any subproject that publishes Maven artifacts, using the
 plugin ID `dev.adamko.dev-publish` and
 [the latest version](https://plugins.gradle.org/plugin/dev.adamko.dev-publish).
 
@@ -139,7 +139,7 @@ This prunes every level at once, so anything else that is still needed must be n
 See the [`multi-project-aggregation` example](examples/multi-project-aggregation).
 
 > [!IMPORTANT]
-> Every project named in a `devPublication` dependency must itself apply Dev Publish. Declaring a
+> Every project named in a `devPublication` dependency must itself apply DevPublish. Declaring a
 > dependency on a project that does not will fail with a variant-resolution error.
 > `subprojects { devPublication(it) }` and `allprojects { devPublication(it) }` is not supported.
 
