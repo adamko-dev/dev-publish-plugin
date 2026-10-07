@@ -3,6 +3,11 @@
 junit = "6.0.2"
 kotest = "6.1.0"
 
+# This build uses DevPublish to test itself. Versions are timestamped snapshots, which Central deletes after 90 days.
+# Find new versions in https://central.sonatype.com/repository/maven-snapshots/dev/adamko/gradle/<module>/<version>/maven-metadata.xml
+# TODO replace with 1.2.0 when the next version is released
+devPublishBootstrap = "1.2.0-20261008.110542-20"
+
 gradlePlugin-pluginPublishPlugin = "2.2.1"
 gradlePlugin-nmcp = "1.6.2"
 
@@ -21,4 +26,10 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 ## region Gradle Plugins
 gradlePlugin-pluginPublishPlugin = { module = "com.gradle.publish:plugin-publish-plugin", version.ref = "gradlePlugin-pluginPublishPlugin" }
 gradlePlugin-nmcp = { module = "com.gradleup.nmcp:nmcp", version.ref = "gradlePlugin-nmcp" }
+## endregion
+
+## region DevPublish bootstrap
+devPublishBootstrap-plugin = { module = "dev.adamko.gradle:dev-publish-plugin", version.ref = "devPublishBootstrap" }
+devPublishBootstrap-common = { module = "dev.adamko.gradle:dev-publish-common", version.ref = "devPublishBootstrap" }
+devPublishBootstrap-utils = { module = "dev.adamko.gradle:dev-publish-utils", version.ref = "devPublishBootstrap" }
 ## endregion

@@ -13,6 +13,17 @@ dependencyResolutionManagement {
 
   repositories {
     mavenCentral()
+    exclusiveContent {
+      forRepository {
+        maven("https://central.sonatype.com/repository/maven-snapshots/") {
+          name = "MavenCentralSnapshotsDevPublishBootstrap"
+        }
+      }
+      filter {
+        includeModule("dev.adamko.gradle", "dev-publish-common")
+        includeModule("dev.adamko.gradle", "dev-publish-utils")
+      }
+    }
   }
 }
 
