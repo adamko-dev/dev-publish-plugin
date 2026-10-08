@@ -122,7 +122,7 @@ testing {
     }
 
     val additionalTestedGradleVersions = listOf(
-      "8.14.5",
+      "8.14.6",
     )
     additionalTestedGradleVersions.forEach { testedGradleVersion ->
       targets.register("testIntegrationGradle_${testedGradleVersion.replace(Regex("[^\\d]"), "_")}") {
