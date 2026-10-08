@@ -60,7 +60,7 @@ constructor(
    *
    * Metadata, checksums, and signatures are excluded,
    * because they are not deterministic (`maven-metadata.xml`, contains timestamps),
-   * or are not relevant (DevPublish recomputes the checksum of artifacts, so checksums can be ignored).
+   * or are not relevant (Dev Publish recomputes the checksum of artifacts, so checksums can be ignored).
    *
    * Must only contain files from [devMavenRepo].
    * Adding multiple directories could result in clashes, because files are keyed by relative paths.

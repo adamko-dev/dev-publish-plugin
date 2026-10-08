@@ -270,7 +270,7 @@ class DevRepoStalenessTest : FunSpec({
         .withArguments(
           ":tests:test",
           // Shift the clock, otherwise if re-publish is fast then it could reuse the previous SNAPSHOT timestamp.
-          // This test requires the SNAPSHOT timestamp is different, to prove DevPublish ignores filenames.
+          // This test requires the SNAPSHOT timestamp is different, to prove Dev Publish ignores filenames.
           "-Dorg.gradle.internal.test.clockoffset=60000",
         )
         .build {

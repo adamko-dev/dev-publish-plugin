@@ -78,7 +78,7 @@ class DevPubConfigurationsContainer(
 
   val devPublishUtils: NamedDomainObjectProvider<DependencyScopeConfiguration> =
     configurations.dependencyScope(DEV_PUB__UTILS_CONFIGURATION) {
-      description = "Declares the DevPublish helper library, for reading the dev Maven repo."
+      description = "Declares the Dev Publish helper library, for reading the dev Maven repo."
       defaultDependencies {
         add(dependencies.create("$DEV_PUB__UTILS_GROUP:$DEV_PUB__UTILS_MODULE:$DevPublishVersion"))
       }

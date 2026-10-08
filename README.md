@@ -1,9 +1,9 @@
 [![GitHub license](https://img.shields.io/github/license/adamko-dev/dev-publish-plugin?style=for-the-badge)](https://github.com/adamko-dev/dev-publish-plugin/blob/main/LICENSE)
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.adamko.dev-publish?logo=gradle&style=for-the-badge)](https://plugins.gradle.org/plugin/dev.adamko.dev-publish)
 
-# DevPublish Gradle Plugin
+# Dev Publish Gradle Plugin
 
-[DevPublish](https://github.com/adamko-dev/dev-publish-plugin) is a [Gradle](https://gradle.org/) plugin
+[Dev Publish](https://github.com/adamko-dev/dev-publish-plugin) is a [Gradle](https://gradle.org/) plugin
 that supports functional testing of a published module.
 
 Each subproject is published to a local file-based Maven repository, containing real publications (Gradle Module
@@ -31,7 +31,7 @@ Metadata, Plugin Marker Artifacts, checksums) that your tests can resolve.
 
 ## Quick Start
 
-Apply `maven-publish` and DevPublish to any subproject that publishes Maven artifacts, using the
+Apply `maven-publish` and Dev Publish to any subproject that publishes Maven artifacts, using the
 plugin ID `dev.adamko.dev-publish` and
 [the latest version](https://plugins.gradle.org/plugin/dev.adamko.dev-publish).
 
@@ -86,7 +86,7 @@ Declaring `devPublish.dependency()` runs `updateDevRepo` before the tests, puts 
 repository location on their runtime classpath, and adds `dev-publish-utils` for reading it.
 
 > [!IMPORTANT]
-> DevPublish adds the current project as a default `devPublication()` dependency.
+> Dev Publish adds the current project as a default `devPublication()` dependency.
 > Adding another `devPublication()` dependency will replace the default,
 > so a project that collects other projects and also wants its own publications must declare itself as well.
 >
@@ -139,11 +139,11 @@ This prunes every level at once, so anything else that is still needed must be n
 See the [`multi-project-aggregation` example](examples/multi-project-aggregation).
 
 > [!IMPORTANT]
-> Every project named in a `devPublication` dependency must itself apply DevPublish. Declaring a
+> Every project named in a `devPublication` dependency must itself apply Dev Publish. Declaring a
 > dependency on a project that does not will fail with a variant-resolution error.
 > `subprojects { devPublication(it) }` and `allprojects { devPublication(it) }` is not supported.
 
-DevPublish will automatically update the dev repository to a local, isolated directory before running `gradle test`.
+Dev Publish will automatically update the dev repository to a local, isolated directory before running `gradle test`.
 
 ## Using the dev repo in tests
 
@@ -216,7 +216,7 @@ run its functional tests.
 
 To avoid that, only require signing when the build is actually publishing somewhere else
 by using `signing { setRequired(...) }`.
-DevPublish adds a helper property, `publishingOutsideDevRepo`, to the `signing {}` block to help:
+Dev Publish adds a helper property, `publishingOutsideDevRepo`, to the `signing {}` block to help:
 
 ```kotlin
 signing {

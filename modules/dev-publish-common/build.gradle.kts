@@ -7,7 +7,7 @@ plugins {
   id("dev.adamko.dev-publish")
 }
 
-description = "Common code shared between DevPublish libraries."
+description = "Common code shared between Dev Publish libraries."
 
 kotlin {
   compilerOptions {

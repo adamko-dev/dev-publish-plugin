@@ -18,7 +18,7 @@ import kotlin.annotation.AnnotationTarget.*
  * hints.
  *
  * If you find yourself needing to opt in, then please report your use-case on
- * [the DevPublish Plugin issue tracker](https://github.com/adamko-dev/dev-publish-plugin/issues).
+ * [the Dev Publish Plugin issue tracker](https://github.com/adamko-dev/dev-publish-plugin/issues).
  */
 @RequiresOptIn(
   "Internal API - may change at any time without notice",

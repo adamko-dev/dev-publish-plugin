@@ -10,7 +10,7 @@ import org.gradle.testfixtures.ProjectBuilder
 
 class DevPublishCapabilityNotationTest : FunSpec({
 
-  test("expect the group is appended to the DevPublish group") {
+  test("expect the group is appended to the Dev Publish group") {
     project(name = "lib", group = "com.example").notation() shouldBe
         "dev.adamko.dev-publish.com.example:lib-dev-publish"
   }

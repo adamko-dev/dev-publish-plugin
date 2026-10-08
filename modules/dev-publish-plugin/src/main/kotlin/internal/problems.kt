@@ -9,9 +9,9 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemReporter
 
-/** Root [ProblemGroup] for every problem that DevPublish reports. */
+/** Root [ProblemGroup] for every problem that Dev Publish reports. */
 internal val DevPublishProblemGroup: ProblemGroup =
-  ProblemGroup.create("dev-publish", "DevPublish")
+  ProblemGroup.create("dev-publish", "Dev Publish")
 
 internal val deprecatedTaskProblemId: ProblemId =
   ProblemId.create("deprecated-task", "Deprecated task", DevPublishProblemGroup)
@@ -53,7 +53,7 @@ internal fun ProblemReporter.failDevMavenRepoNotRelative(
     contextualLabel("The dev Maven repository has no path relative to the metadata directory")
     details(
       """
-      |DevPublish records the dev Maven repository's location relative to the metadata file, so the
+      |Dev Publish records the dev Maven repository's location relative to the metadata file, so the
       |recorded path is the same on every machine and checkout, and the test tasks that read it stay
       |relocatable for the build cache.
       |
@@ -68,7 +68,7 @@ internal fun ProblemReporter.failDevMavenRepoNotRelative(
 }
 
 /**
- * Warn that a publishing task has no [org.gradle.api.publish.maven.MavenPublication], so DevPublish
+ * Warn that a publishing task has no [org.gradle.api.publish.maven.MavenPublication], so Dev Publish
  * cannot record it.
  *
  * Reported, not thrown: the publication is skipped and the rest of the build still works.
@@ -78,9 +78,9 @@ internal fun ProblemReporter.reportPublicationNotSet() {
     contextualLabel("Publishing task has no MavenPublication")
     details(
       """
-      |DevPublish records each Maven publication, so it can tell when one has changed and must be
+      |Dev Publish records each Maven publication, so it can tell when one has changed and must be
       |re-published to the dev Maven repository. A publishing task with no publication cannot be
-      |recorded, and is skipped, so the DevPublish Maven repository may be missing artifacts.
+      |recorded, and is skipped, so the Dev Publish Maven repository may be missing artifacts.
       |
       |A publishing task normally always has a publication, so this is unexpected.
       |""".trimMargin()
@@ -95,7 +95,7 @@ internal fun ProblemReporter.reportSigningExtensionNotExtensionAware() {
     contextualLabel("The SigningExtension is not ExtensionAware")
     details(
       """
-      |DevPublish adds a `$SIGNING__EXTERNAL_PUBLISHING_PROPERTY` property to the `signing {}`
+      |Dev Publish adds a `$SIGNING__EXTERNAL_PUBLISHING_PROPERTY` property to the `signing {}`
       |block, which requires SigningExtension to implement the ExtensionAware interface.
       |
       |The property is not required, it is only a helper, the project will continue to work.
@@ -126,13 +126,13 @@ internal fun ProblemReporter.failMissingSignatory(
     "Only require signing when publishing externally: $`signing { setRequired(publishingOutsideDevRepo) }`"
 
   throw throwing(InvalidUserDataException(), missingSignatoryProblemId) {
-    contextualLabel("DevPublish cannot publish to the dev Maven repository if a signatory is required, but missing.")
+    contextualLabel("Dev Publish cannot publish to the dev Maven repository if a signatory is required, but missing.")
     details(
       """
-      |DevPublish tried to publish to the local dev Maven repo, but failed because the `signing` plugin is configured to require a signatory, but no signatory is available.
+      |Dev Publish tried to publish to the local dev Maven repo, but failed because the `signing` plugin is configured to require a signatory, but no signatory is available.
       |
       |To resolve this, conditionally disable signing when no external publishing tasks are running.
-      |DevPublish adds a `$SIGNING__EXTERNAL_PUBLISHING_PROPERTY` property to the `signing {}` block to help:
+      |Dev Publish adds a `$SIGNING__EXTERNAL_PUBLISHING_PROPERTY` property to the `signing {}` block to help:
       |
       |    $`signing { setRequired(publishingOutsideDevRepo) }`
       |

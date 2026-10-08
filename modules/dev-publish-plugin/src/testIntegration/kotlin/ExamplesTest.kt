@@ -33,13 +33,13 @@ class ExamplesTest : FunSpec({
     .filter { it.isDirectory() }
     .sortedBy { it.name }
 
-  /** The start of the line an example uses to pin DevPublish. */
+  /** The start of the line an example uses to pin Dev Publish. */
   val versionPin = """id("dev.adamko.dev-publish") version """
 
   /** What an example must pin: the version this build publishes, as it will be released. */
   val expectedVersion = GradleProjectTest.devPublishVersion.substringBefore("-SNAPSHOT")
 
-  /** Every DevPublish version an example pins, with the file that pins it. */
+  /** Every Dev Publish version an example pins, with the file that pins it. */
   fun pinnedVersions(): List<Pair<Path, String>> =
     examplesDir.walk()
       .filter { file -> generatedDirs.none { it in file.map(Path::name) } }
@@ -61,7 +61,7 @@ class ExamplesTest : FunSpec({
   test("expect every example pins the version this build publishes") {
     val pins = pinnedVersions()
 
-    withClue("no example pins a DevPublish version - has the plugins block changed shape?") {
+    withClue("no example pins a Dev Publish version - has the plugins block changed shape?") {
       pins.shouldNotBeEmpty()
     }
 
@@ -96,10 +96,10 @@ class ExamplesTest : FunSpec({
   }
 
   /**
-   * Point a copied example at the locally built DevPublish, instead of the Gradle Plugin Portal.
+   * Point a copied example at the locally built Dev Publish, instead of the Gradle Plugin Portal.
    *
    * The checked-in examples are exactly what a reader should copy, so they carry none of this: they
-   * resolve DevPublish the way any other project would. Only the copy this test builds is
+   * resolve Dev Publish the way any other project would. Only the copy this test builds is
    * redirected at the dev Maven repo.
    */
   fun Path.addLocalDevPublishRepo() {
@@ -115,7 +115,7 @@ class ExamplesTest : FunSpec({
       .replace("    mavenCentral()", "$localRepo\n    mavenCentral()")
 
     check(redirected != settings) {
-      "could not redirect ${settingsFile.relativeTo(examplesDir.parent)} at the local DevPublish " +
+      "could not redirect ${settingsFile.relativeTo(examplesDir.parent)} at the local Dev Publish" +
           "repo - has the example's settings file changed shape?"
     }
 
@@ -123,7 +123,7 @@ class ExamplesTest : FunSpec({
   }
 
   /**
-   * Build a copied example against the DevPublish built here, not the released version it pins.
+   * Build a copied example against the Dev Publish built here, not the released version it pins.
    *
    * The checked-in examples name a real, released version, because that is what a reader should
    * copy.
