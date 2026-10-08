@@ -38,7 +38,7 @@ class DevPublishTasksContainer(
 
   private fun TaskContainer.registerPublishAllToDevRepoTask(): TaskProvider<BaseDevPublishTask> =
     register<BaseDevPublishTask>(PUBLISH_ALL_TO_DEV_REPO_TASK_NAME) {
-      description = "Publishes all Maven publications to the dev Maven repository. " +
+      description = "Publishes all Maven publications from this project into the dev Maven repository staging area." +
           "This is an internal task that should not typically be manually referenced or called."
 
       outputs.dir(devPubExtension.stagingDevMavenRepo)
@@ -63,9 +63,9 @@ class DevPublishTasksContainer(
 
   private fun TaskContainer.registerGenerateDevPublishMetadataTask(): TaskProvider<GenerateDevPublishMetadataTask> =
     register<GenerateDevPublishMetadataTask>(GENERATE_DEV_PUBLISH_METADATA_TASK_NAME) {
-      description = "Writes the dev Maven repository location into a properties file, " +
-          "so it can be read from a test runtime classpath. " +
-          "This is an internal task that should not typically be manually referenced or called."
+      description =
+        "Writes the dev Maven repository location into a properties file, so it can be read from a test runtime classpath. " +
+            "This is an internal task that should not typically be manually referenced or called."
 
       outputDirectory.convention(devPubExtension.devMavenRepoMetadataDir)
       devMavenRepo.convention(updateDevRepo.flatMap { it.devRepo })
@@ -95,7 +95,9 @@ class DevPublishTasksContainer(
 
   private fun TaskContainer.registerUpdateDevRepoTask(): TaskProvider<UpdateDevRepoTask> =
     register<UpdateDevRepoTask>(UPDATE_DEV_REPO_TASK_NAME) {
-      description = "Updates the dev-repo"
+      description = "Publishes the Maven publications of every project declared as a " +
+          "`devPublication` dependency (by default, the current project) into the dev Maven repository (devPublish.devMavenRepo)." +
+          "This is an internal task that should not typically be manually referenced or called."
       devRepo.set(devPubExtension.devMavenRepo)
     }
 
