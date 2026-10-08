@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import buildsrc.utils.TestDirsArgument.Companion.TestDirsArgument
 import buildsrc.utils.skipTestFixturesPublications
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
@@ -109,8 +110,14 @@ testing {
           .withPropertyName("exampleFiles")
           .withPathSensitivity(PathSensitivity.RELATIVE)
         systemProperty("devPublishVersion", devPublishVersion.get())
-        systemProperty("hostGradleUserHome", gradle.gradleUserHomeDir.invariantSeparatorsPath)
-        systemProperty("projectTestTempDir", projectTestTempDir.get().asFile.invariantSeparatorsPath)
+        val projectTestTemp = projectTestTempDir
+        val gradleUserHome = gradle.gradleUserHomeDir
+        jvmArgumentProviders.add(
+          objects.TestDirsArgument {
+            projectTestTempDir = projectTestTemp
+            hostGradleUserHome.fileValue(gradleUserHome)
+          }
+        )
         systemProperty("testedGradleVersion", GradleVersion.current().version)
       }
     }
