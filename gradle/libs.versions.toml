@@ -1,6 +1,6 @@
 [versions]
 
-junit = "6.0.2"
+junit = "6.1.3"
 kotest = "6.1.0"
 
 # This build uses DevPublish to test itself. Versions are timestamped snapshots, which Central deletes after 90 days.
