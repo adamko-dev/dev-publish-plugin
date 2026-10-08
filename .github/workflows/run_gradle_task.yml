@@ -111,4 +111,5 @@ jobs:
         with:
           report_paths: |
             **/build/test-results/**/TEST-*.xml
+            !**/build/project-tests/**
           require_tests: false
