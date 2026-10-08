@@ -10,6 +10,9 @@
     "gradle-wrapper",
     "github-actions",
   ],
+  ignorePaths: [
+    "examples/**",
+  ],
   // will auto-merge directly, without a PR, if tests pass - else, makes a PR
   automergeType: "branch",
   platformAutomerge: true,
