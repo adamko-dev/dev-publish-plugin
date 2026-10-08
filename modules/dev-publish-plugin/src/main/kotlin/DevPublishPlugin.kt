@@ -4,11 +4,7 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.data.DevPubAttributes
 import dev.adamko.gradle.dev_publish.data.DevPubConfigurationsContainer
-import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
-import dev.adamko.gradle.dev_publish.internal.DevPublishVersion
-import dev.adamko.gradle.dev_publish.internal.failMissingSignatory
-import dev.adamko.gradle.dev_publish.internal.reportPublicationNotSet
-import dev.adamko.gradle.dev_publish.internal.reportSigningExtensionNotExtensionAware
+import dev.adamko.gradle.dev_publish.internal.*
 import dev.adamko.gradle.dev_publish.services.DevPublishService
 import dev.adamko.gradle.dev_publish.services.DevPublishService.Companion.SERVICE_NAME
 import dev.adamko.gradle.dev_publish.tasks.DevPublishTasksContainer
@@ -21,7 +17,6 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
@@ -449,8 +444,6 @@ constructor(
     const val DEV_PUB__PUBLICATION_API_DEPENDENCIES = "devPublicationApi"
     const val DEV_PUB__PUBLICATION_INCOMING = "devPublicationResolvableElements"
     const val DEV_PUB__PUBLICATION_OUTGOING = "devPublicationConsumableElements"
-
-    private val logger = Logging.getLogger(DevPublishService::class.java)
 
     /**
      * The [ProjectDependency] handed to users as [DevPublishPluginExtension.dependency].
