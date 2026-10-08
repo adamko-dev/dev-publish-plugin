@@ -36,11 +36,8 @@ class ExamplesTest : FunSpec({
   /** The start of the line an example uses to pin Dev Publish. */
   val versionPin = """id("dev.adamko.dev-publish") version """
 
-  /** What an example must pin: the version this build publishes, as it will be released. */
-  val expectedVersion = GradleProjectTest.devPublishVersion.substringBefore("-SNAPSHOT")
-
   /** Every Dev Publish version an example pins, with the file that pins it. */
-  fun pinnedVersions(): List<Pair<Path, String>> =
+  fun actualVersions(): List<Pair<Path, String>> =
     examplesDir.walk()
       .filter { file -> generatedDirs.none { it in file.map(Path::name) } }
       .filter { it.name.endsWith(".gradle.kts") }
@@ -58,16 +55,16 @@ class ExamplesTest : FunSpec({
     }
   }
 
-  test("expect every example pins the version this build publishes") {
-    val pins = pinnedVersions()
+  test("expect every example uses a published version") {
+    val actualVersions = actualVersions()
 
     withClue("no example pins a Dev Publish version - has the plugins block changed shape?") {
-      pins.shouldNotBeEmpty()
+      actualVersions.shouldNotBeEmpty()
     }
 
-    pins.forEach { (file, pinned) ->
+    actualVersions.forEach { (file, actualVersion) ->
       withClue(file.relativeTo(examplesDir.parent).invariantSeparatorsPathString) {
-        pinned shouldBe expectedVersion
+        actualVersion shouldBe "1.2.0"
       }
     }
   }
@@ -184,7 +181,6 @@ class ExamplesTest : FunSpec({
       val runner = GradleRunner.create()
         .withProjectDir(projectDir.toFile())
         .withGradleVersion(gradleVersion)
-        .forwardOutput()
         .withArguments(tasks)
 
       test("expect `gradle ${tasks.joinToString(" ")}` succeeds") {

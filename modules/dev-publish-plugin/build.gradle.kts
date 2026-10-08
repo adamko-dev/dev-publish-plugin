@@ -109,7 +109,6 @@ testing {
         inputs.files(exampleFiles)
           .withPropertyName("exampleFiles")
           .withPathSensitivity(PathSensitivity.RELATIVE)
-        systemProperty("devPublishVersion", devPublishVersion.get())
         val projectTestTemp = projectTestTempDir
         val gradleUserHome = gradle.gradleUserHomeDir
         jvmArgumentProviders.add(
