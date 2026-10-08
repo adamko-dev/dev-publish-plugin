@@ -11,10 +11,6 @@ tasks.withType<AbstractTestTask>().configureEach {
   timeout.set(Duration.ofMinutes(60))
 
   testLogging {
-    showCauses = true
-    showExceptions = true
-    showStackTraces = true
-    showStandardStreams = true
     events(
       PASSED,
       FAILED,
