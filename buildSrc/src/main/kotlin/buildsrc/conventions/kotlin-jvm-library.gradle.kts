@@ -57,8 +57,9 @@ kotlin {
 
 publishing {
   publications {
-    register<MavenPublication>("mavenJava") {
+    val mavenJava by creating(MavenPublication::class) {
       from(components["java"])
     }
+    signing.sign(mavenJava)
   }
 }
