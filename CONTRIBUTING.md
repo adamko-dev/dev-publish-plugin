@@ -45,7 +45,7 @@ dependencies {
 Only the `[here](...)` link is read, so the quote could wrap over several lines.
 
 The snippet must be a contiguous run of lines from that file, ignoring indentation and the
-DevPublish version. A `// ...` line marks lines that were left out; each part must appear somewhere
+Dev Publish version. A `// ...` line marks lines that were left out; each part must appear somewhere
 in the file. Nothing marks the region in the example itself: the examples are published for people to
 read as-is, so they are kept free of tags that only mean something to this test.
 
@@ -61,6 +61,6 @@ The build number differs per module.
 
 ## Releasing
 
-1. Update `version` in `gradle.properties`, and the DevPublish version pinned in `examples/`
+1. Update `version` in `gradle.properties`, and the Dev Publish version pinned in `examples/`
    (`ExamplesTest` checks they match).
 2. Merge to `main`, `.github/workflows/workflow_release.yml` publishes.

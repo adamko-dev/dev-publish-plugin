@@ -19,12 +19,12 @@ class SigningTest : FunSpec({
   context("when signing is unconditionally required, and there is no signatory") {
     val project = project(setRequired = null)
 
-    test("expect updateDevRepo fails, and DevPublish explains how to fix it") {
+    test("expect updateDevRepo fails, and Dev Publish explains how to fix it") {
       project.runner
         .withArguments(":updateDevRepo")
         .forwardOutput()
         .buildAndFail {
-          output shouldContain "DevPublish cannot publish to the dev Maven repository if a signatory is required, but missing"
+          output shouldContain "Dev Publish cannot publish to the dev Maven repository if a signatory is required, but missing"
           output shouldContain "signing { setRequired(publishingOutsideDevRepo) }"
           output shouldContain "signing { setRequired { someOtherCondition() || publishingOutsideDevRepo.get() } }"
         }
@@ -72,7 +72,7 @@ class SigningTest : FunSpec({
         .buildAndFail {
           output shouldContain "no configured signatory"
           // signing is genuinely required here, so Gradle's error is the correct one.
-          // DevPublish must not replace it with advice the build has already followed.
+          // Dev Publish must not replace it with advice the build has already followed.
           output shouldNotContain "cannot publish to the dev Maven repository without a signatory"
         }
     }

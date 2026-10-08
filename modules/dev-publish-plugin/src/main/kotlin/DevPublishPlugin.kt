@@ -186,7 +186,7 @@ constructor(
     }
   }
 
-  /** React to [MavenPublishPlugin], and configure the appropriate DevPublish tasks. */
+  /** React to [MavenPublishPlugin], and configure the appropriate Dev Publish tasks. */
   private fun configureMavenPublishingPlugin(
     project: Project,
     devPubExtension: DevPublishPluginExtension,
@@ -265,7 +265,7 @@ constructor(
   /**
    * React to the [SigningPlugin].
    *
-   * If signing is enabled and there's no signatory, then DevPublish tasks will fail.
+   * If signing is enabled and there's no signatory, then Dev Publish tasks will fail.
    * To improve UX:
    * - Throw an error that explains the situation and suggest solutions.
    * - Create `signing.publishingOutsideDevRepo` helper, for use in [SigningExtension.setRequired].
@@ -305,7 +305,7 @@ constructor(
 
   /**
    * `true` if this project has a task in the graph that publishes to the
-   * [DevPublish][DEV_PUB__MAVEN_REPO_NAME] Maven repository.
+   * [Dev Publish][DEV_PUB__MAVEN_REPO_NAME] Maven repository.
    */
   private fun publishesToDevRepo(project: Project): Provider<Boolean> {
     val publishesToDevRepo = objects.property<Boolean>().convention(false)
@@ -327,7 +327,7 @@ constructor(
 
   /**
    * `true` if this project has a task in the graph that publishes somewhere other than the
-   * DevPublish Maven repository.
+   * Dev Publish Maven repository.
    *
    * Only this project's own tasks are considered, because a [Sign] task and the publications it
    * signs belong to the same project. Defaults to `true`, so signing is never skipped by accident.
@@ -420,7 +420,7 @@ constructor(
     /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency]. */
     internal const val DEV_PUB__ELEMENTS_CONFIGURATION = "devPublishElements"
 
-    /** Name of the extension DevPublish adds to [SigningExtension]. */
+    /** Name of the extension Dev Publish adds to [SigningExtension]. */
     internal const val SIGNING__EXTERNAL_PUBLISHING_PROPERTY = "publishingOutsideDevRepo"
 
     /** Group of the capability that identifies [DEV_PUB__ELEMENTS_CONFIGURATION]. */
@@ -457,7 +457,7 @@ constructor(
           capabilities {
             requireCapability(capability)
           }
-          because("the DevPublish dev Maven repository, and the dev-publish-utils library that reads it")
+          because("the Dev Publish dev Maven repository, and the dev-publish-utils library that reads it")
         }
       }
     }

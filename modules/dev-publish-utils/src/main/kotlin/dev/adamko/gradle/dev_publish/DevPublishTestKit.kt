@@ -71,7 +71,7 @@ private fun devMavenRepoFromClasspath(): DevRepoFromClasspathResult {
     return DevRepoFromClasspathResult.Failure(
       "The dev Maven repository metadata was found at $devPublishActualLocation, which is not a file on disk, " +
           "so the recorded location '$devPublishRelativeLocation' cannot be resolved against it. " +
-          "DevPublish expects the metadata to be a directory on the runtime classpath."
+          "Dev Publish expects the metadata to be a directory on the runtime classpath."
     )
 
   val metadataDir = devPublishActualLocation.toURI().toPath().parent

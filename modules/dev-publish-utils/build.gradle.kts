@@ -3,7 +3,7 @@ plugins {
   id("dev.adamko.dev-publish")
 }
 
-description = "Helpers for reading the DevPublish dev Maven repository from a test JVM."
+description = "Helpers for reading the Dev Publish dev Maven repository from a test JVM."
 
 dependencies {
   implementation(projects.modules.devPublishCommon)

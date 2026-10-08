@@ -1,7 +1,7 @@
-# DevPublish examples
+# Dev Publish examples
 
 Each directory is a self-contained Gradle build that demonstrates one way of using
-[DevPublish](../README.md), and is built on every CI run by
+[Dev Publish](../README.md), and is built on every CI run by
 [`ExamplesTest`](../modules/dev-publish-plugin/src/testIntegration/kotlin/ExamplesTest.kt).
 
 - [`multi-project-aggregation`](multi-project-aggregation): Collecting several subprojects' publications into one dev

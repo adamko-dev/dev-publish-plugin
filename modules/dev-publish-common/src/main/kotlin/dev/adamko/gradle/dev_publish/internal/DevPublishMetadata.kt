@@ -1,7 +1,7 @@
 package dev.adamko.gradle.dev_publish.internal
 
 /**
- * The metadata file that the DevPublish Gradle plugin writes, and `dev-publish-utils` reads back
+ * The metadata file that the Dev Publish Gradle plugin writes, and `dev-publish-utils` reads back
  * inside a test JVM.
  */
 @DevPublishInternalApi

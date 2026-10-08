@@ -27,7 +27,7 @@ class DeprecatedTaskTest : FunSpec({
           shouldHaveRunTask(":generatePublicationHashTask")
 
           if (testedGradleVersion >= "9.0") {
-            output shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task', is deprecated. It will be removed in DevPublish version 2.0."
+            output shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task', is deprecated. It will be removed in Dev Publish version 2.0."
           }
         }
     }
@@ -38,7 +38,7 @@ class DeprecatedTaskTest : FunSpec({
 
       withClue("the Problems API entry should be in ${reportFile.name}") {
         reportContent shouldContain "deprecated-task"
-        reportContent shouldContain "DevPublish"
+        reportContent shouldContain "Dev Publish"
         reportContent shouldContain "is deprecated"
       }
     }

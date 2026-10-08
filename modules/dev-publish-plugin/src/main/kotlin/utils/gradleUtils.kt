@@ -122,7 +122,7 @@ internal inline fun <reified T : Task> T.deprecateTask(
   doLast {
     problemsReporter.report(deprecatedTaskProblemId) {
       contextualLabel("Task '$path' is deprecated")
-      details("Task '$name', in $projectDisplayName, is deprecated. It will be removed in DevPublish version 2.0.")
+      details("Task '$name', in $projectDisplayName, is deprecated. It will be removed in Dev Publish version 2.0.")
       solution("Remove all references to the task.")
     }
   }
