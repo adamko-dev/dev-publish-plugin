@@ -21,14 +21,6 @@ abstract class MavenPublishingSettings @Inject constructor(
     providers.provider { !project.version.toString().endsWith("-SNAPSHOT") }
 
 
-  val sonatypeReleaseUrl: Provider<String> =
-    isReleaseVersion.map { isRelease ->
-      if (isRelease) {
-        "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-      } else {
-        "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-      }
-    }
   val mavenCentralUsername: Provider<String> =
     dppProp("mavenCentralUsername")
       .orElse(providers.environmentVariable("MAVEN_SONATYPE_USERNAME"))
