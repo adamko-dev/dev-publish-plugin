@@ -1,6 +1,5 @@
 package dev.adamko.gradle.dev_publish.tasks
 
-import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__MAVEN_REPO_NAME
 import dev.adamko.gradle.dev_publish.DevPublishPluginExtension
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import dev.adamko.gradle.dev_publish.utils.deprecateTask
@@ -42,13 +41,6 @@ class DevPublishTasksContainer(
           "This is an internal task that should not typically be manually referenced or called."
 
       outputs.dir(devPubExtension.stagingDevMavenRepo)
-
-      dependsOn(
-        // I would like to check using repository.name == DEV_PUB__MAVEN_REPO_NAME,
-        // but the task's repo property is set lazily and doesn't have a nice
-        // provider property, so checking via the task name will have to do:
-        project.tasks.matching { it.name == "publishAllPublicationsTo${DEV_PUB__MAVEN_REPO_NAME}Repository" }
-      )
     }
 
   @Suppress("DEPRECATION")
