@@ -43,6 +43,8 @@ tasks.nmcpPublishAggregationToCentralPortalSnapshots {
 
 val nmcpPublish by tasks.registering {
   group = PublishingPlugin.PUBLISH_TASK_GROUP
+  description =
+    "Lifecycle task. Runs either 'publish release' or 'publish snapshots' tasks, depending on whether project has a release or snapshot version."
   dependsOn(tasks.nmcpPublishAggregationToCentralPortal)
   dependsOn(tasks.nmcpPublishAggregationToCentralPortalSnapshots)
 }

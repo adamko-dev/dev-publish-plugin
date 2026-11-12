@@ -14,6 +14,7 @@ pluginManagement {
 plugins {
   id("dev.adamko.gradle-kotlin-accessors") version "main-SNAPSHOT"
 }
+
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
