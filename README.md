@@ -150,6 +150,10 @@ Dev Publish will automatically update the dev repository to a local, isolated di
 Once `devPublish.dependency()` is configured use the `dev-publish-utils` helper library in your tests.
 
 ```kotlin
+import dev.adamko.gradle.dev_publish.devMavenRepo
+
+// ...
+
 @Test
 fun `dev repo contains requested publications`() {
   val devRepo: Path = devMavenRepo()
@@ -187,6 +191,10 @@ using `withPluginClasspath()`.
 `settings.gradle.kts`:
 
 ```kotlin
+import dev.adamko.gradle.dev_publish.devPublishSettings
+
+// ...
+
 @Test
 fun `plugin can be resolved by id and version`(@TempDir projectDir: Path) {
   // Writes a settings file that resolves the plugin under test from the dev Maven repo.
