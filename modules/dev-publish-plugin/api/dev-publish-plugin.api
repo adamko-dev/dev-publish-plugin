@@ -35,9 +35,13 @@ public final class dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask$Compan
 }
 
 public abstract class dev/adamko/gradle/dev_publish/tasks/GenerateDevPublishMetadataTask : dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask {
+	public static final field Companion Ldev/adamko/gradle/dev_publish/tasks/GenerateDevPublishMetadataTask$Companion;
 	public abstract fun getDevMavenRepo ()Lorg/gradle/api/file/DirectoryProperty;
 	public final fun getDevMavenRepoRelativeToMetadataDir ()Lorg/gradle/api/provider/Provider;
 	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+}
+
+public final class dev/adamko/gradle/dev_publish/tasks/GenerateDevPublishMetadataTask$Companion {
 }
 
 public abstract class dev/adamko/gradle/dev_publish/tasks/GeneratePublicationDataChecksumTask : dev/adamko/gradle/dev_publish/tasks/BaseDevPublishTask {
