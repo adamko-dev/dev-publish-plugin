@@ -143,78 +143,83 @@ constructor(
       .use { digestStream ->
         state.values
           .sorted()
-          .forEach { cacheValue -> digestStream.write("$cacheValue$CHECKSUM_CACHE_VALUE_SEPARATOR") }
+          .forEach { cacheValue ->
+            digestStream.write(cacheValue)
+            digestStream.write(CHECKSUM_CACHE_VALUE_SEPARATOR)
+          }
       }
     return md.digest().toHexString()
   }
-}
 
-/** Separates the normalized path from the cache value, in a state file line. */
-private const val STATE_FILE_PATH_SEPARATOR = '\t'
+  companion object {
 
-/** Ends each line in the state file. */
-private const val STATE_FILE_LINE_SEPARATOR = '\n'
+    /** Separates the normalized path from the cache value, in a state file line. */
+    private const val STATE_FILE_PATH_SEPARATOR = '\t'
 
-/** Separates cache values in the repo checksum input, so concatenated values can't be ambiguous. */
-private const val CHECKSUM_CACHE_VALUE_SEPARATOR = '\n'
+    /** Ends each line in the state file. */
+    private const val STATE_FILE_LINE_SEPARATOR = '\n'
 
+    /** Separates cache values in the repo checksum input, so concatenated values can't be ambiguous. */
+    private const val CHECKSUM_CACHE_VALUE_SEPARATOR = "\n"
 
-/** `parentDir:checksum`. The file name is excluded, because SNAPSHOT publishing renames files. */
-private fun computeCacheValue(file: Path, normalizedPath: String): String {
-  val parentDir = Path(normalizedPath).parent
-    ?.invariantSeparatorsPathString
-    ?: "<root>"
-  return "${parentDir}:${file.checksum()}"
-}
-
-
-/** Read lines of `normalizedPath<TAB>cacheValue`. */
-private fun readStateEntries(stateFile: Path): MutableMap<String, String> {
-  if (!stateFile.exists()) {
-    return mutableMapOf()
-  }
-
-  return stateFile.useLines(UTF_8) { lines ->
-    lines
-      .filter { it.isNotBlank() }
-      .associateTo(mutableMapOf()) { line ->
-        val parts = line.split(STATE_FILE_PATH_SEPARATOR, limit = 2)
-        require(parts.size == 2) { "Invalid state file line `$line` in ${stateFile.invariantSeparatorsPathString}" }
-        parts.run { first() to last() }
-      }
-  }
-}
-
-/** Write lines of `normalizedPath<TAB>cacheValue`. */
-private fun writeStateEntries(stateFile: Path, state: Map<String, String>) {
-  stateFile.writeText(
-    state.entries.joinToString("") { (normalizedPath, cacheValue) ->
-      buildString {
-        append(normalizedPath)
-        append(STATE_FILE_PATH_SEPARATOR)
-        append(cacheValue)
-        append(STATE_FILE_LINE_SEPARATOR)
-      }
-    },
-    UTF_8,
-  )
-}
-
-private fun updateState(state: MutableMap<String, String>, fileChanges: Iterable<FileChange>) {
-  val (removalChanges, modificationChanges) =
-    fileChanges.partition { it.changeType == REMOVED }
-
-  removalChanges.forEach { state.remove(it.normalizedPath) }
-
-  modificationChanges
-    .parallelStream()
-    .map { change ->
-      val file = change.file.toPath()
-      val cacheValue = computeCacheValue(file, change.normalizedPath)
-      change.normalizedPath to cacheValue
+    /** `parentDir:checksum`. The file name is excluded, because SNAPSHOT publishing renames files. */
+    private fun computeCacheValue(file: Path, normalizedPath: String): String {
+      val parentDir = Path(normalizedPath).parent
+        ?.invariantSeparatorsPathString
+        ?: "<root>"
+      return "${parentDir}:${file.checksum()}"
     }
-    .collect(Collectors.toList())
-    .forEach { (normalizedPath, cacheValue) ->
-      state[normalizedPath] = cacheValue
+
+
+    /** Read lines of `normalizedPath<TAB>cacheValue`. */
+    private fun readStateEntries(stateFile: Path): MutableMap<String, String> {
+      if (!stateFile.exists()) {
+        return mutableMapOf()
+      }
+
+      return stateFile.useLines(UTF_8) { lines ->
+        lines
+          .filter { it.isNotBlank() }
+          .associateTo(mutableMapOf()) { line ->
+            val parts = line.split(STATE_FILE_PATH_SEPARATOR, limit = 2)
+            require(parts.size == 2) { "Invalid state file line `$line` in ${stateFile.invariantSeparatorsPathString}" }
+            parts.run { first() to last() }
+          }
+      }
     }
+
+    /** Write lines of `normalizedPath<TAB>cacheValue`. */
+    private fun writeStateEntries(stateFile: Path, state: Map<String, String>) {
+      stateFile.writeText(
+        state.entries.joinToString("") { (normalizedPath, cacheValue) ->
+          buildString {
+            append(normalizedPath)
+            append(STATE_FILE_PATH_SEPARATOR)
+            append(cacheValue)
+            append(STATE_FILE_LINE_SEPARATOR)
+          }
+        },
+        UTF_8,
+      )
+    }
+
+    private fun updateState(state: MutableMap<String, String>, fileChanges: Iterable<FileChange>) {
+      val (removalChanges, modificationChanges) =
+        fileChanges.partition { it.changeType == REMOVED }
+
+      removalChanges.forEach { state.remove(it.normalizedPath) }
+
+      modificationChanges
+        .parallelStream()
+        .map { change ->
+          val file = change.file.toPath()
+          val cacheValue = computeCacheValue(file, change.normalizedPath)
+          change.normalizedPath to cacheValue
+        }
+        .collect(Collectors.toList())
+        .forEach { (normalizedPath, cacheValue) ->
+          state[normalizedPath] = cacheValue
+        }
+    }
+  }
 }
