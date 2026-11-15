@@ -7,6 +7,7 @@ import dev.adamko.gradle.dev_publish.internal.DevPublishMetadata.REPO_CHECKSUM_F
 import dev.adamko.gradle.dev_publish.internal.DevPublishMetadata.REPO_LOCATION_FILE_NAME
 import dev.adamko.gradle.dev_publish.internal.checksums.checksum
 import dev.adamko.gradle.dev_publish.internal.failDevMavenRepoNotRelative
+import dev.adamko.gradle.dev_publish.tasks.GenerateDevPublishMetadataTask.Companion.repoPath
 import dev.adamko.gradle.dev_publish.utils.nullOutputStream
 import java.nio.file.Path
 import java.security.DigestOutputStream
@@ -22,7 +23,7 @@ import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.work.ChangeType.REMOVED
 import org.gradle.work.FileChange
 import org.gradle.work.Incremental
@@ -69,10 +70,24 @@ constructor(
    */
   @get:Incremental
   @get:InputFiles
-  @get:PathSensitive(RELATIVE)
+  @get:PathSensitive(NONE) // file names might include SNAPSHOT timestamps
   @get:IgnoreEmptyDirectories
   @DevPublishInternalApi
   abstract val devMavenRepoTrackedFiles: ConfigurableFileCollection
+
+  @get:Input
+  @get:Optional
+  internal val devMavenRepoTrackedFilesPaths: Provider<Set<String>>
+    get() {
+      return devMavenRepo.zip(devMavenRepoTrackedFiles.elements) { devMavenRepoDir, trackedFiles ->
+        val devMavenRepo = devMavenRepoDir.asFile.toPath()
+        trackedFiles
+          .map { f -> f.asFile.toPath() }
+          .filter { f -> f.isRegularFile() }
+          .map { f -> repoPath(devMavenRepo, f) }
+          .toSortedSet()
+      }
+    }
 
   /**
    * Patterns of files to exclude from the dev Maven repository up-to-date check.
@@ -130,10 +145,14 @@ constructor(
     }
     stateDir.createDirectories()
 
-    // normalizedPath -> cache value
+    // repoPath -> cache value
     val state: MutableMap<String, String> = readStateEntries(stateFile)
 
-    updateState(state, inputChanges.getFileChanges(devMavenRepoTrackedFiles))
+    updateState(
+      state = state,
+      fileChanges = inputChanges.getFileChanges(devMavenRepoTrackedFiles),
+      devMavenRepo = devMavenRepo.get().asFile.toPath(),
+    )
 
     writeStateEntries(stateFile, state)
 
@@ -162,16 +181,33 @@ constructor(
     /** Separates cache values in the repo checksum input, so concatenated values can't be ambiguous. */
     private const val CHECKSUM_CACHE_VALUE_SEPARATOR = "\n"
 
+    /** The timestamp and build number in a SNAPSHOT file name, e.g. `-20261113.215135-1`. */
+    private val SNAPSHOT_TIMESTAMP = Regex("""-\d{8}\.\d{6}-\d+""")
+
+    /**
+     * Path of [file] relative to [devMavenRepo], with any SNAPSHOT timestamp replaced by `-SNAPSHOT`,
+     * so re-publishing a SNAPSHOT doesn't change it.
+     */
+    private fun repoPath(devMavenRepo: Path, file: Path): String {
+      val normalizedFile =
+        if (file.parent?.name?.endsWith("-SNAPSHOT") == true) {
+          file.resolveSibling(file.name.replace(SNAPSHOT_TIMESTAMP, "-SNAPSHOT"))
+        } else {
+          file
+        }
+      return normalizedFile.relativeTo(devMavenRepo).invariantSeparatorsPathString
+    }
+
     /** `parentDir:checksum`. The file name is excluded, because SNAPSHOT publishing renames files. */
-    private fun computeCacheValue(file: Path, normalizedPath: String): String {
-      val parentDir = Path(normalizedPath).parent
+    private fun computeCacheValue(file: Path, repoPath: String): String {
+      val parentDir = Path(repoPath).parent
         ?.invariantSeparatorsPathString
         ?: "<root>"
       return "${parentDir}:${file.checksum()}"
     }
 
 
-    /** Read lines of `normalizedPath<TAB>cacheValue`. */
+    /** Read lines of `repoPath<TAB>cacheValue`. */
     private fun readStateEntries(stateFile: Path): MutableMap<String, String> {
       if (!stateFile.exists()) {
         return mutableMapOf()
@@ -188,12 +224,12 @@ constructor(
       }
     }
 
-    /** Write lines of `normalizedPath<TAB>cacheValue`. */
+    /** Write lines of `repoPath<TAB>cacheValue`. */
     private fun writeStateEntries(stateFile: Path, state: Map<String, String>) {
       stateFile.writeText(
-        state.entries.joinToString("") { (normalizedPath, cacheValue) ->
+        state.entries.joinToString("") { (repoPath, cacheValue) ->
           buildString {
-            append(normalizedPath)
+            append(repoPath)
             append(STATE_FILE_PATH_SEPARATOR)
             append(cacheValue)
             append(STATE_FILE_LINE_SEPARATOR)
@@ -203,22 +239,30 @@ constructor(
       )
     }
 
-    private fun updateState(state: MutableMap<String, String>, fileChanges: Iterable<FileChange>) {
+    /**
+     * Keyed by [repoPath], not [FileChange.getNormalizedPath],
+     * because [devMavenRepoTrackedFiles] ignores paths, so its normalised paths are empty.
+     */
+    private fun updateState(
+      state: MutableMap<String, String>,
+      fileChanges: Iterable<FileChange>,
+      devMavenRepo: Path,
+    ) {
       val (removalChanges, modificationChanges) =
         fileChanges.partition { it.changeType == REMOVED }
 
-      removalChanges.forEach { state.remove(it.normalizedPath) }
+      removalChanges.forEach { state.remove(repoPath(devMavenRepo, it.file.toPath())) }
 
       modificationChanges
         .parallelStream()
         .map { change ->
           val file = change.file.toPath()
-          val cacheValue = computeCacheValue(file, change.normalizedPath)
-          change.normalizedPath to cacheValue
+          val repoPath = repoPath(devMavenRepo, file)
+          repoPath to computeCacheValue(file, repoPath)
         }
         .collect(Collectors.toList())
-        .forEach { (normalizedPath, cacheValue) ->
-          state[normalizedPath] = cacheValue
+        .forEach { (repoPath, cacheValue) ->
+          state[repoPath] = cacheValue
         }
     }
   }

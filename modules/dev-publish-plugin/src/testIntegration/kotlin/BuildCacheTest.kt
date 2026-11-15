@@ -6,10 +6,11 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.paths.shouldBeADirectory
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import java.nio.file.Path
-import kotlin.io.path.fileSize
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.walk
+import kotlin.io.path.*
+import kotlin.io.path.PathWalkOption.INCLUDE_DIRECTORIES
+import kotlin.time.Duration.Companion.seconds
 import org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildCacheTest : FunSpec({
@@ -81,13 +82,51 @@ class BuildCacheTest : FunSpec({
         }
     }
   }
+
+  context("when a SNAPSHOT dev repo is rebuilt with the same contents") {
+    val project = project(version = "0.0.1-SNAPSHOT")
+
+    test("populate generateDevPublishMetadata in build cache") {
+      project.runner
+        .withArguments(":generateDevPublishMetadata")
+        .build {
+          shouldHaveTaskWithAnyOutcome(":generateDevPublishMetadata", SUCCESS, FROM_CACHE, UP_TO_DATE)
+        }
+    }
+
+    test("expect generateDevPublishMetadata is loaded from build cache") {
+      val firstJarName = snapshotJarName(project)
+      project.runner
+        .withArguments(
+          "clean",
+          ":generateDevPublishMetadata",
+          // shift Gradle's clock, so the SNAPSHOT file names get a different timestamp
+          "-Dorg.gradle.internal.test.clockoffset=${60.seconds.inWholeMilliseconds}",
+        )
+        .build {
+          // without a new timestamp, this test proves nothing
+          snapshotJarName(project) shouldNotBe firstJarName
+          shouldHaveTaskWithOutcome(":generateDevPublishMetadata", FROM_CACHE)
+        }
+    }
+  }
 }) {
 
   companion object {
     private fun Path.recursiveFileSize(): Long =
       walk().filter { it.isRegularFile() }.sumOf { it.fileSize() }
 
-    private fun TestScope.project(): GradleProjectTest =
+    private fun snapshotJarName(project: GradleProjectTest): String =
+      project.projectDir
+        .resolve("build")
+        .walk(INCLUDE_DIRECTORIES)
+        .filter { it.isDirectory() && it.name.endsWith("-SNAPSHOT") }
+        .flatMap { it.listDirectoryEntries("*.jar") }
+        .firstOrNull()
+        ?.name
+        ?: error("No snapshot jar found")
+
+    private fun TestScope.project(version: String = "0.0.1"): GradleProjectTest =
       gradleKtsProjectTest(
         projectName = "build-cache",
         testProjectPath = testCase.descriptor.slashSeparatedPath(),
@@ -101,7 +140,7 @@ class BuildCacheTest : FunSpec({
           |}
           |
           |group = "foo.project"
-          |version = "0.0.1"
+          |version = "$version"
           |
           |publishing {
           |  publications {
