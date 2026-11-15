@@ -4,7 +4,10 @@ import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.paths.shouldExist
+import io.kotest.matchers.paths.shouldNotExist
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import java.nio.file.Path
 import org.gradle.testkit.runner.TaskOutcome.*
@@ -125,6 +128,43 @@ class MultipleGradlePluginsTest : FunSpec({
             }
         }
       }
+    }
+  }
+
+  context("when a plugin is removed") {
+    val project = project()
+    val mavenDevDir = project.projectDir.resolve("build/maven-dev")
+
+    test("expect the plugin is published first") {
+      project.runner
+        .withArguments("updateDevRepo")
+        .forwardOutput()
+        .build {
+          mavenDevDir.resolve("plugin-gamma").shouldExist()
+        }
+    }
+
+    test("expect the removed plugin is deleted from the dev repo") {
+      val buildGradleKtsWithGamma = project.buildGradleKts
+      project.buildGradleKts = buildGradleKtsWithGamma.replace(
+        """
+        |  plugins.register("gamma") {
+        |    id = "plugin-gamma"
+        |    displayName = "PluginGamma"
+        |    implementationClass = "PluginGamma"
+        |  }
+        |""".trimMargin(),
+        "",
+      )
+      project.buildGradleKts shouldNotBe buildGradleKtsWithGamma
+
+      project.runner
+        .withArguments("updateDevRepo")
+        .forwardOutput()
+        .build {
+          mavenDevDir.resolve("plugin-alpha").shouldExist()
+          mavenDevDir.resolve("plugin-gamma").shouldNotExist()
+        }
     }
   }
 })

@@ -2,6 +2,7 @@ package dev.adamko.gradle.dev_publish
 
 import dev.adamko.gradle.dev_publish.internal.DevPublishInternalApi
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -66,12 +67,16 @@ abstract class DevPublishPluginExtension
   abstract val stagingDevMavenRepo: DirectoryProperty
 
   /**
-   * Temporary storage of individual publications.
+   * Temporary storage of this project's current publications, collected by `publishAllToDevRepo`.
    *
    * This value is intended for internal use and should not typically be configured in build scripts.
    */
   @DevPublishInternalApi
   abstract val publicationsStore: DirectoryProperty
+
+  /** The repo written by each dev repo publish task. Added to by each task, when it is configured. */
+  @DevPublishInternalApi
+  abstract val publicationDirs: ConfigurableFileCollection
 
   /**
    * Location of stored
