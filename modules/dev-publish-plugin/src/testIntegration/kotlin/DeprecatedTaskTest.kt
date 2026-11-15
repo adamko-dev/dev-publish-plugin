@@ -37,9 +37,8 @@ class DeprecatedTaskTest : FunSpec({
       val reportContent = reportFile.readText()
 
       withClue("the Problems API entry should be in ${reportFile.name}") {
-        reportContent shouldContain "deprecated-task"
-        reportContent shouldContain "Dev Publish"
-        reportContent shouldContain "is deprecated"
+        reportContent shouldContain "Task ':generatePublicationHashTask' is deprecated"
+        reportContent shouldContain "Task 'generatePublicationHashTask', in root project 'deprecated-task', is deprecated. It will be removed in Dev Publish version 2.0."
       }
     }
 

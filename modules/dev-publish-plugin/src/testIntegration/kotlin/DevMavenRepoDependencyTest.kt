@@ -4,6 +4,8 @@ import dev.adamko.gradle.dev_publish.test_utils.*
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
+import io.kotest.matchers.paths.shouldExist
+import io.kotest.matchers.paths.shouldNotExist
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.*
@@ -55,12 +57,39 @@ class DevMavenRepoDependencyTest : FunSpec({
           .trim()
 
         assertSoftly {
-          repoChecksum shouldNotBe "no-files"
+          repoChecksum shouldNotBe EmptyRepoChecksum
           repoChecksum.shouldBeSingleLine()
           repoChecksum shouldHaveLength 64 // SHA-256 checksum length
           repoChecksum.shouldBeHexadecimal()
         }
       }
+    }
+  }
+
+  context("a project with a custom devMavenRepo") {
+    val project = project(devMavenRepo = "custom-repo")
+
+    test("expect the consumer's tests find the publication in the custom repo") {
+      project.runner
+        .withArguments(":test")
+        .forwardOutput()
+        .build {
+          shouldHaveTaskWithAnyOutcome(":test", SUCCESS, FROM_CACHE, UP_TO_DATE)
+        }
+    }
+
+    test("expect the custom location is recorded") {
+      val repoLocation = project.projectDir
+        .resolve("build/tmp/.maven-dev/metadata/dev.publish.metadata.repo-location.txt")
+        .readText()
+        .trim()
+
+      repoLocation shouldBe "../../../custom-repo"
+    }
+
+    test("expect nothing is published to the default location") {
+      project.projectDir.resolve("build/custom-repo").shouldExist()
+      project.projectDir.resolve("build/maven-dev").shouldNotExist()
     }
   }
 
@@ -98,11 +127,19 @@ class DevMavenRepoDependencyTest : FunSpec({
 
   companion object {
 
-    private fun TestScope.project(): GradleProjectTest =
+    /** SHA-256 of no input, which is the checksum of an empty repo. */
+    private const val EmptyRepoChecksum = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+    /** @param[devMavenRepo] `devPublish.devMavenRepo`, relative to the build dir, or `null` for the default. */
+    private fun TestScope.project(
+      devMavenRepo: String? = null,
+    ): GradleProjectTest =
       gradleKtsProjectTest(
         projectName = "dev-maven-repo-dependency",
         testProjectPath = testCase.descriptor.slashSeparatedPath(),
       ) {
+        // an earlier run would have left the default repo behind
+        file("build").deleteRecursively()
 
         buildGradleKts = """
             |plugins {
@@ -121,6 +158,8 @@ class DevMavenRepoDependencyTest : FunSpec({
             |    }
             |  }
             |}
+            |
+            |${devMavenRepo?.let { "devPublish.devMavenRepo = layout.buildDirectory.dir(\"$it\")" } ?: ""}
             |
             |dependencies {
             |  testImplementation(devPublish.dependency())

@@ -6,6 +6,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import kotlin.io.path.invariantSeparatorsPathString
 import org.gradle.testkit.runner.TaskOutcome.SKIPPED
 
 /**
@@ -73,7 +74,27 @@ class SigningTest : FunSpec({
           output shouldContain "no configured signatory"
           // signing is genuinely required here, so Gradle's error is the correct one.
           // Dev Publish must not replace it with advice the build has already followed.
-          output shouldNotContain "cannot publish to the dev Maven repository without a signatory"
+          output shouldNotContain "Dev Publish cannot publish"
+        }
+    }
+  }
+
+  context("when the same build also publishes to Maven local") {
+    // todo also test a custom file-based repo
+    val project = project(setRequired = "publishingOutsideDevRepo")
+
+    test("expect signing is NOT skipped, and the build fails without a signatory") {
+      project.runner
+        .withArguments(
+          ":updateDevRepo",
+          ":publishMavenJavaPublicationToMavenLocal",
+          // keep the real ~/.m2 untouched, in case signing is skipped and the publish succeeds
+          "-Dmaven.repo.local=${project.projectDir.resolve("maven-local").invariantSeparatorsPathString}",
+        )
+        .forwardOutput()
+        .buildAndFail {
+          output shouldContain "no configured signatory"
+          output shouldNotContain "Dev Publish cannot publish"
         }
     }
   }
