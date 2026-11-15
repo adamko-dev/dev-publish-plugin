@@ -19,8 +19,8 @@ class DevPublishTasksContainer(
   private val problemsReporter: ProblemReporter,
 ) {
 
-  /** Lifecycle task for publishing dev repos to the current subproject's dev repo. */
-  val publishAllToDevRepo: TaskProvider<BaseDevPublishTask> =
+  /** Collects the publications of the current subproject. */
+  val publishAllToDevRepo: TaskProvider<PublishAllToDevRepoTask> =
     tasks.registerPublishAllToDevRepoTask()
 
   /** No longer used: Gradle's own up-to-date checks decide when to publish. */
@@ -35,12 +35,13 @@ class DevPublishTasksContainer(
   val generateDevPublishMetadata: TaskProvider<GenerateDevPublishMetadataTask> =
     tasks.registerGenerateDevPublishMetadataTask()
 
-  private fun TaskContainer.registerPublishAllToDevRepoTask(): TaskProvider<BaseDevPublishTask> =
-    register<BaseDevPublishTask>(PUBLISH_ALL_TO_DEV_REPO_TASK_NAME) {
+  private fun TaskContainer.registerPublishAllToDevRepoTask(): TaskProvider<PublishAllToDevRepoTask> =
+    register<PublishAllToDevRepoTask>(PUBLISH_ALL_TO_DEV_REPO_TASK_NAME) {
       description = "Publishes all Maven publications from this project into the dev Maven repository staging area." +
           "This is an internal task that should not typically be manually referenced or called."
 
-      outputs.dir(devPubExtension.stagingDevMavenRepo)
+      publicationDirs.from(devPubExtension.publicationDirs)
+      publicationsStore.convention(devPubExtension.publicationsStore)
     }
 
   @Suppress("DEPRECATION")

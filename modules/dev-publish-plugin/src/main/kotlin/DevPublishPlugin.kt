@@ -228,7 +228,12 @@ constructor(
     usesService(devPubService)
 
     val stagingDevMavenRepo = devPubExtension.stagingDevMavenRepo
-    val publicationStore = devPubExtension.publicationsStore.dir(this@configurePublishToMavenRepositoryTask.name)
+
+    val publicationDir = layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/publications/$name")
+
+    devPubExtension.publicationDirs.from(
+      objects.fileCollection().from(publicationDir).builtBy(this)
+    )
 
     // need to determine the repo lazily because the repo isn't set immediately
     val repoIsDevPub = providers.provider { repository?.name == DEV_PUB__MAVEN_REPO_NAME }.orElse(false)
@@ -237,7 +242,7 @@ constructor(
     // Gradle already tracks every publishable file as an input,
     // so declaring an output is enough to make the task up-to-date when the publication is unchanged.
     outputs
-      .dir(publicationStore)
+      .dir(publicationDir)
       .withPropertyName("devPubPublicationStore")
 
     outputs.doNotCacheIf("this task only performs simple file modifications") { _ ->
@@ -252,12 +257,12 @@ constructor(
       }
     }
 
-    doLast_("sync staging repo to publication store") {
+    doLast_("sync staging repo to publication dir") {
       if (repoIsDevPub.get()) {
-        logger.info { ("[$path] Syncing staging-dev-maven-repo to publication store ${publicationStore.get().asFile.invariantSeparatorsPath}") }
+        logger.info { ("[$path] Syncing staging-dev-maven-repo to publication dir ${publicationDir.get().asFile.invariantSeparatorsPath}") }
         fs.sync {
           from(stagingDevMavenRepo)
-          into(publicationStore)
+          into(publicationDir)
         }
 
         // clear the staging repo for the next task
