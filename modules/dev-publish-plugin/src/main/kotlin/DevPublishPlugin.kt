@@ -199,7 +199,7 @@ constructor(
         }
 
         devPubTasks.publishAllToDevRepo.configure {
-          // By name: `tasks.matching {}` and `tasks.named {}` realize every task when resolved.
+          // By name: `tasks.matching {}` and `tasks.named {}` realise every task when resolved.
           // Added here because the task only exists once maven-publish has the dev repo.
           dependsOn("publishAllPublicationsTo${DEV_PUB__MAVEN_REPO_NAME}Repository")
         }
@@ -395,7 +395,6 @@ constructor(
       this.gradleModuleMetadata.from(gmm)
     }
   }
-
 
   private fun getGmm(
     project: Project,
