@@ -3,7 +3,7 @@ plugins {
   `java-gradle-plugin`
   `jvm-test-suite`
   `maven-publish`
-  id("dev.adamko.dev-publish") version "1.2.0"
+  id("dev.adamko.dev-publish") version "1.2.2"
 }
 
 group = "com.example"

@@ -64,7 +64,7 @@ class ExamplesTest : FunSpec({
 
     actualVersions.forEach { (file, actualVersion) ->
       withClue(file.relativeTo(examplesDir.parent).invariantSeparatorsPathString) {
-        actualVersion shouldBe "1.2.0"
+        actualVersion shouldBe "1.2.2"
       }
     }
   }
