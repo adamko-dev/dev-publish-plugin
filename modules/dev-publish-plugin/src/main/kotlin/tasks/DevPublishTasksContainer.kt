@@ -70,17 +70,7 @@ class DevPublishTasksContainer(
             }
         }
       )
-      excludedDevMavenRepoFilePatterns.convention(
-        setOf(
-          "**/maven-metadata.xml*",
-          "**/*.asc",
-          "**/*.sig",
-          "**/*.md5",
-          "**/*.sha1",
-          "**/*.sha256",
-          "**/*.sha512",
-        )
-      )
+      excludedDevMavenRepoFilePatterns.convention(devPubExtension.excludedDevMavenRepoFilePatterns)
       stateDir.convention(
         objects.directoryProperty().fileValue(temporaryDir.resolve("state"))
       )

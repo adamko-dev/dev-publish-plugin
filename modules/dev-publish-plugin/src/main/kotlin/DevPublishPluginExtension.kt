@@ -6,6 +6,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 
 /**
  * Settings for controlling the behaviour of [DevPublishPlugin] and its tasks.
@@ -50,6 +51,15 @@ abstract class DevPublishPluginExtension
    * @see dependency
    */
   abstract val devMavenRepo: DirectoryProperty
+
+  /**
+   * Patterns of files in [devMavenRepo] that are ignored when checking if tests that depend on it are up-to-date.
+   * Exclude files that change on every build, but that tests don't use, such as SBOMs.
+   * See [org.gradle.api.tasks.util.PatternFilterable] for syntax.
+   *
+   * Default: Maven metadata (`maven-metadata.xml`), checksums, and signatures.
+   */
+  abstract val excludedDevMavenRepoFilePatterns: SetProperty<String>
 
   /**
    * Directory holding the generated metadata file that records the [devMavenRepo] location.

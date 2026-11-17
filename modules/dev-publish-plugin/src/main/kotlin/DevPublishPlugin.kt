@@ -137,6 +137,19 @@ constructor(
   ): DevPublishPluginExtension {
     return create<DevPublishPluginExtension>(DEV_PUB__EXTENSION_NAME).apply {
       devMavenRepo.convention(layout.buildDirectory.dir(DEV_PUB__MAVEN_REPO_DIR))
+      val defaultExcludedDevMavenRepoFilePatterns =
+        setOf(
+          "**/maven-metadata.xml*",
+          "**/*.asc",
+          "**/*.sig",
+          "**/*.md5",
+          "**/*.sha1",
+          "**/*.sha256",
+          "**/*.sha512",
+        )
+      excludedDevMavenRepoFilePatterns.convention(defaultExcludedDevMavenRepoFilePatterns)
+      // use `set()` as a workaround for https://github.com/gradle/gradle/issues/18352#issuecomment-925080375
+      excludedDevMavenRepoFilePatterns.set(defaultExcludedDevMavenRepoFilePatterns)
 
       val tmpDir = layout.buildDirectory.dir("tmp/.$DEV_PUB__MAVEN_REPO_DIR/")
 
