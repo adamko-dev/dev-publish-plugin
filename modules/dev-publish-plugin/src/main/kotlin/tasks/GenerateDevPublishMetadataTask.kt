@@ -90,8 +90,7 @@ constructor(
     }
 
   /**
-   * Patterns of files to exclude from the dev Maven repository up-to-date check.
-   * See [org.gradle.api.tasks.util.PatternFilterable] for syntax.
+   * @see dev.adamko.gradle.dev_publish.DevPublishPluginExtension.excludedDevMavenRepoFilePatterns
    */
   @get:Internal
   @DevPublishInternalApi

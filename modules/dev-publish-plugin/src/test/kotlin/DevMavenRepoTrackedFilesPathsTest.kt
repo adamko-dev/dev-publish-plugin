@@ -105,6 +105,24 @@ class DevMavenRepoTrackedFilesPathsTest : FunSpec({
       )
     }
   }
+
+  context("when the extension adds an excluded file pattern") {
+    val project = project()
+    project.extensions.getByType<DevPublishPluginExtension>()
+      .excludedDevMavenRepoFilePatterns.add("**/*.spdx.json")
+    writeRepoFiles(
+      project,
+      "foo/lib/maven-metadata.xml",
+      "foo/lib/1.0.0/lib-1.0.0.jar",
+      "foo/lib/1.0.0/lib-1.0.0.spdx.json",
+    )
+
+    test("expect the added and default patterns are excluded") {
+      project.tasks.generateDevPublishMetadata.shouldHaveTrackedFilesPaths(
+        "foo/lib/1.0.0/lib-1.0.0.jar",
+      )
+    }
+  }
 }) {
   companion object {
     private fun project(): Project {
