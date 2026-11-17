@@ -2,11 +2,12 @@
 
 package dev.adamko.gradle.dev_publish.data
 
-import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__ELEMENTS_CONFIGURATION
+import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__API_ELEMENTS_CONFIGURATION
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_API_DEPENDENCIES
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_DEPENDENCIES
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_INCOMING
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__PUBLICATION_OUTGOING
+import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__RUNTIME_ELEMENTS_CONFIGURATION
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__UTILS_CONFIGURATION
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__UTILS_GROUP
 import dev.adamko.gradle.dev_publish.DevPublishPlugin.Companion.DEV_PUB__UTILS_MODULE
@@ -84,14 +85,29 @@ class DevPubConfigurationsContainer(
       }
     }
 
-  val devPublishElements: NamedDomainObjectProvider<ConsumableConfiguration> =
-    configurations.consumable(DEV_PUB__ELEMENTS_CONFIGURATION) {
+  /** Only the library, so compiling against it doesn't trigger dev publishing. */
+  val devPublishApiElements: NamedDomainObjectProvider<ConsumableConfiguration> =
+    configurations.consumable(DEV_PUB__API_ELEMENTS_CONFIGURATION) {
+      description = "The library that reads the dev Maven repository location."
+
+      extendsFrom_(devPublishUtils)
+
+      attributes {
+        attribute(USAGE_ATTRIBUTE, devPubAttributes.javaApiUsage)
+        attribute(CATEGORY_ATTRIBUTE, devPubAttributes.libraryCategory)
+        attribute(DevPublishTypeAttribute, DevPubAttributes.DEV_REPO_METADATA_KEY)
+      }
+    }
+
+  val devPublishRuntimeElements: NamedDomainObjectProvider<ConsumableConfiguration> =
+    configurations.consumable(DEV_PUB__RUNTIME_ELEMENTS_CONFIGURATION) {
       description = "The dev Maven repository location, and the library that reads it."
 
       extendsFrom_(devPublishUtils)
 
       attributes {
-        // An attribute is required to trigger 'variant aware matching'.
+        attribute(USAGE_ATTRIBUTE, devPubAttributes.javaRuntimeUsage)
+        attribute(CATEGORY_ATTRIBUTE, devPubAttributes.libraryCategory)
         attribute(DevPublishTypeAttribute, DevPubAttributes.DEV_REPO_METADATA_KEY)
       }
     }

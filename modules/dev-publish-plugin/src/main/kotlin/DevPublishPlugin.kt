@@ -183,18 +183,25 @@ constructor(
     devPubTasks: DevPublishTasksContainer,
     devPubConfigurations: DevPubConfigurationsContainer,
   ) {
-    devPubConfigurations.devPublishElements.configure {
+    val capability = devPublishCapabilityNotation(project.groupProvider, project.name).map { notation ->
+      "$notation:$DevPublishVersion"
+    }
+
+    devPubConfigurations.devPublishApiElements.configure {
+      outgoing {
+        // Distinguishes this from `apiElements`.
+        // Without this, the TargetJvmVersion attribute is required, and it's impossible to guess the required value.
+        capability(capability)
+      }
+    }
+
+    devPubConfigurations.devPublishRuntimeElements.configure {
       outgoing {
         artifact(devPubExtension.devMavenRepoMetadataDir) {
           builtBy(devPubTasks.generateDevPublishMetadata)
         }
         // Distinguishes this from `runtimeElements`.
-        // Without this, the TargetJvmVersion attribute is required, and it's impossible to guess the required value.
-        capability(
-          devPublishCapabilityNotation(project.groupProvider, project.name).map { notation ->
-            "$notation:$DevPublishVersion"
-          }
-        )
+        capability(capability)
       }
     }
   }
@@ -440,13 +447,19 @@ constructor(
 
     const val DEV_PUB__MAVEN_REPO_DIR = "maven-dev"
 
-    /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency]. */
-    internal const val DEV_PUB__ELEMENTS_CONFIGURATION = "devPublishElements"
+    /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency], for compilation. */
+    internal const val DEV_PUB__API_ELEMENTS_CONFIGURATION = "devPublishApiElements"
+
+    /** Name of the consumable Configuration behind [DevPublishPluginExtension.dependency], for runtime. */
+    internal const val DEV_PUB__RUNTIME_ELEMENTS_CONFIGURATION = "devPublishRuntimeElements"
 
     /** Name of the extension Dev Publish adds to [SigningExtension]. */
     internal const val SIGNING__EXTERNAL_PUBLISHING_PROPERTY = "publishingOutsideDevRepo"
 
-    /** Group of the capability that identifies [DEV_PUB__ELEMENTS_CONFIGURATION]. */
+    /**
+     * Group of the capability that identifies [DEV_PUB__API_ELEMENTS_CONFIGURATION]
+     * and [DEV_PUB__RUNTIME_ELEMENTS_CONFIGURATION].
+     */
     internal const val DEV_PUB__CAPABILITY_GROUP = "dev.adamko.dev-publish"
 
     /** Coordinates of the helper library that [DevPublishPluginExtension.dependency] brings in. */
@@ -471,8 +484,9 @@ constructor(
     /**
      * The [ProjectDependency] handed to users as [DevPublishPluginExtension.dependency].
      *
-     * Targets [DEV_PUB__ELEMENTS_CONFIGURATION] of this same project, selected by capability
-     * because `runtimeElements` matches the same attributes and would otherwise be ambiguous.
+     * Targets [DEV_PUB__API_ELEMENTS_CONFIGURATION] or [DEV_PUB__RUNTIME_ELEMENTS_CONFIGURATION] of this
+     * same project, selected by capability because `apiElements` and `runtimeElements` match the same
+     * attributes and would otherwise be ambiguous.
      */
     private fun createDevPublishDependency(project: Project): Provider<Dependency> {
       return devPublishCapabilityNotation(group = project.groupProvider, name = project.name).map { capability ->
@@ -486,8 +500,8 @@ constructor(
     }
 
     /**
-     * Coordinates of the capability that distinguishes [DEV_PUB__ELEMENTS_CONFIGURATION] from the
-     * project's other variants.
+     * Coordinates of the capability that distinguishes [DEV_PUB__API_ELEMENTS_CONFIGURATION] and
+     * [DEV_PUB__RUNTIME_ELEMENTS_CONFIGURATION] from the project's other variants.
      *
      * Derived from the project's own coordinates, which are already required to be unique.
      */

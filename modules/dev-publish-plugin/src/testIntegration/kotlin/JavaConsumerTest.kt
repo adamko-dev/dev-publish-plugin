@@ -5,6 +5,7 @@ import dev.adamko.gradle.dev_publish.test_utils.GradleProjectTest.Companion.test
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotContain
 import kotlin.io.path.Path
 import kotlin.io.path.pathString
 import org.gradle.testkit.runner.TaskOutcome.*
@@ -77,17 +78,42 @@ class JavaConsumerTest : FunSpec({
         }
     }
 
-    test("expect devPublishElements carries a project-specific capability") {
+    test("expect devPublishApiElements carries a project-specific capability, and no artifacts") {
       project.runner
         .withArguments(
           ":outgoingVariants",
-          "--variant", "devPublishElements",
+          "--variant", "devPublishApiElements",
           "--quiet",
         )
         .build {
           output.trim().normalizeVersion() shouldBe """
             |--------------------------------------------------
-            |Variant devPublishElements
+            |Variant devPublishApiElements
+            |--------------------------------------------------
+            |The library that reads the dev Maven repository location.
+            |
+            |Capabilities
+            |    - dev.adamko.dev-publish.foo.project:java-consumer-dev-publish:{version}
+            |Attributes
+            |    - dev.adamko.gradle.dev_publish.type = dev-maven-repo-metadata
+            |    - org.gradle.category                = library
+            |    - org.gradle.usage                   = java-api
+            """.trimMargin()
+          output shouldNotContain "\nArtifacts\n"
+        }
+    }
+
+    test("expect devPublishRuntimeElements carries a project-specific capability, and the dev repo metadata") {
+      project.runner
+        .withArguments(
+          ":outgoingVariants",
+          "--variant", "devPublishRuntimeElements",
+          "--quiet",
+        )
+        .build {
+          output.trim().normalizeVersion() shouldBe """
+            |--------------------------------------------------
+            |Variant devPublishRuntimeElements
             |--------------------------------------------------
             |The dev Maven repository location, and the library that reads it.
             |
@@ -95,6 +121,8 @@ class JavaConsumerTest : FunSpec({
             |    - dev.adamko.dev-publish.foo.project:java-consumer-dev-publish:{version}
             |Attributes
             |    - dev.adamko.gradle.dev_publish.type = dev-maven-repo-metadata
+            |    - org.gradle.category                = library
+            |    - org.gradle.usage                   = java-runtime
             |Artifacts
             |    - ${Path("build/tmp/.maven-dev/metadata").pathString}
             """.trimMargin()

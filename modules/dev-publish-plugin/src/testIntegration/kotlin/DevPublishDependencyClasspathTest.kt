@@ -21,7 +21,7 @@ class DevPublishDependencyClasspathTest : FunSpec({
         "--configuration", "testCompileClasspath",
       ).build {
         output shouldNotContain "project ':lib'"
-        // the dev repo metadata, and the library that reads it, are still there
+        // the library that reads the dev repo metadata is still there
         output shouldContain "dev-publish-utils"
       }
     }
