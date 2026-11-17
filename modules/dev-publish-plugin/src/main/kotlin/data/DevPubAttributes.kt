@@ -24,6 +24,10 @@ class DevPubAttributes(
   /** @see devPublishUsage */
   val devPublishCategory: Category = objects.named("dev-publish")
 
+  val javaApiUsage: Usage = objects.named(Usage.JAVA_API)
+  val javaRuntimeUsage: Usage = objects.named(Usage.JAVA_RUNTIME)
+  val libraryCategory: Category = objects.named(Category.LIBRARY)
+
   val mavenRepositoryType = "maven-repository"
   val mavenRepositoryChecksumsType = "maven-repository-checksums"
 
@@ -32,8 +36,8 @@ class DevPubAttributes(
     val DevPublishTypeAttribute: Attribute<String> =
       Attribute("dev.adamko.gradle.dev_publish.type")
     /**
-     * Indicates a [Configuration] contains the generated file recording the dev Maven repository
-     * location, and the library that reads it.
+     * Indicates a [Configuration] provides the library that reads the dev Maven repository location,
+     * and, for runtime, the generated file recording it.
      */
     const val DEV_REPO_METADATA_KEY = "dev-maven-repo-metadata"
   }
